@@ -19,12 +19,8 @@ if __name__ == "__main__":
     import numpy as np
     import matplotlib.pyplot as plt
 
-    x = []
-    y = []
-    
-    for i in np.arange(start, end, 0.01):
-        x.append(i)
-        y.append(twist(i))
+    x = np.linspace(start, end, 1000)
+    y = twist(x)
 
     plt.plot(x, y)
     plt.show()
