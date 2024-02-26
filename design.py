@@ -1,7 +1,7 @@
 Airfoil = "DU 95-W-180"
 
-R = 50
-BLADES = 3
+R = 50          # Blade length [m]
+BLADES = 3      # Numbder of blades [-]
 
 start = 0.2     # start position of the actual airfoil section [r_over_R]
 end = 1         # End postion of the blades [r_over_R]
