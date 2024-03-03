@@ -6,6 +6,7 @@ import math
 import statistics
 
 import design
+import bem
 
 
 file_path = 'polar_DU95W180.xlsx'
@@ -38,9 +39,10 @@ plt.show()
 ## Define blade elemenets 
 
 resolution = 1000
-r_R = np.linspace(design.start, design.end, resolution,endpoint=True)
+r_R = np.linspace(design.start, design.end, resolution, endpoint=True)
 
-# Loop over all segments and take mean conditions
+# Loop over all segments and take mean conditions for further evaluation (ASSUMPTION)
+# n point of evaluation -->> leading to n-1 segments
 for i in range(len(r_R) - 1):
 
     segment_start   = r_R[i]
@@ -52,4 +54,4 @@ for i in range(len(r_R) - 1):
     segment_twist = design.twist(segment_mean)
 
     # For each segment solve the Blade element momentum theory model
-
+    
