@@ -1,0 +1,21 @@
+Main:
+    1. Load airfoil data (Design and data)
+    2. Devide blade into segments
+    3. Solve BEM for each segment in (1.)
+end Main;
+
+BEM:
+    # Applied for each segment piece
+    # Rule solve until conversion
+    Required: chord(r), twist(r), U0, radius, N_blades, TSR,
+     Cl(alpha), Cd(alpha), rho, pitch
+    Initialise: a = 0.3, a' = 0
+    1. Compute Vp 
+    2. Compute Lift and Drag, using (1.)
+    3. Find Phi
+    4. Using (3.) compute the azimuthal and axial force components
+    5. Recompute a and a'
+    6. Glauert and Prandtl
+    7. next a = 0.25a_i + 0.75a_i-1, next a' = 0.25a'_i + 0.75a'_i-1
+    8. Repeat BEM using updated a and a'
+end BEM;
