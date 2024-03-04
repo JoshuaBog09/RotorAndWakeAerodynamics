@@ -56,8 +56,8 @@ for i in [0]:
 
     segment_mean = statistics.mean([segment_start, segment_end])
 
-    segment_chord = design.chord(segment_mean)
-    segment_twist = design.twist(segment_mean)
+    segment_chord = design.chord(segment_mean / design.R)
+    segment_twist = design.twist(segment_mean / design.R)
 
     # For each segment solve the Blade element momentum theory model
     bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, design.TSR[1], segment_twist, segment_twist,
