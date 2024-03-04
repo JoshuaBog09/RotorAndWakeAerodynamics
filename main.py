@@ -44,14 +44,15 @@ plt.show()
 ## Define blade elemenets 
 
 resolution = 1000
-r_R = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R
+r = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R
 
 # Loop over all segments and take mean conditions for further evaluation (ASSUMPTION)
 # n point of evaluation -->> leading to n-1 segments
-for i in range(len(r_R) - 1):
+for i in [0]:
 
-    segment_start   = r_R[i]
-    segment_end     = r_R[i + 1]
+    segment_start   = r[i]
+    segment_end     = r[i + 1]
+    segment_dr      = segment_end - segment_start
 
     segment_mean = statistics.mean([segment_start, segment_end])
 
@@ -59,4 +60,6 @@ for i in range(len(r_R) - 1):
     segment_twist = design.twist(segment_mean)
 
     # For each segment solve the Blade element momentum theory model
+    bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, design.TSR[1], segment_twist, design.twist,
+                       RHO, polar_sheet, design.BLADES, design.start, segment_dr)
     
