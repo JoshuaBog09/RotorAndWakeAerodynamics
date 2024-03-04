@@ -20,6 +20,10 @@ cl_array = df['Cl'].to_numpy()
 cd_array = df['Cd'].to_numpy()
 cm_array = df['Cm'].to_numpy()
 
+# Constant
+RHO = 1.225 # [kg/m^3]
+
+
 # Data over alpha plots
 
 plt.plot(alfa_array, cl_array, label="cl")
@@ -39,7 +43,7 @@ plt.show()
 ## Define blade elemenets 
 
 resolution = 1000
-r_R = np.linspace(design.start, design.end, resolution, endpoint=True)
+r_R = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R
 
 # Loop over all segments and take mean conditions for further evaluation (ASSUMPTION)
 # n point of evaluation -->> leading to n-1 segments
