@@ -13,7 +13,7 @@ def bem_procedure(U0: float, segment_c: float, r:float, R:float, tsr:float, segm
     while iterating:
         
         iteration += 1
-        print(f"{iteration}: a = {a[-1]:.4f}, a'= {a_prime[-1]:.4f}")
+        print(f"{iteration}: a = {a[-1]}, a'= {a_prime[-1]}")
         
         V_axial = U0 * (1 - a[-1])
         omega = tsr * U0 / R
@@ -34,7 +34,7 @@ def bem_procedure(U0: float, segment_c: float, r:float, R:float, tsr:float, segm
         a.append(0.25 * a_new + 0.75 * a[-1])
         a_prime.append(0.25 * a_prime_new + 0.75 * a_prime[-1])
 
-        if math.abs(a[-1] - a[-2]) >= 0.0005 and math.abs(a_prime[-1] - a_prime[-2]) >= 0.0005:
+        if abs(a[-1] - a[-2]) <=  0.0005 and abs(a_prime[-1] - a_prime[-2]) <= 0.0005:
             iterating = False
     
     return None

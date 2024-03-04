@@ -60,6 +60,6 @@ for i in [0]:
     segment_twist = design.twist(segment_mean)
 
     # For each segment solve the Blade element momentum theory model
-    bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, design.TSR[1], segment_twist, design.twist,
+    bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, design.TSR[1], segment_twist, segment_twist,
                        RHO, polar_sheet, design.BLADES, design.start, segment_dr)
     
