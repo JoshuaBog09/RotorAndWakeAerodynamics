@@ -28,7 +28,7 @@ def bem_procedure(U0: float, segment_c: float, r:float, R:float, tsr:float, segm
         cl = np.interp(alpha, polar_sheet[0,:], polar_sheet[1,:])
         cd = np.interp(alpha, polar_sheet[0,:], polar_sheet[2,:])
 
-        f_azi, f_axi = force_azi_axi(a[-1], V_p, segment_c, Phi, RHO, cl, cd) 
+        f_azi, f_axi = force_azi_axi(V_p, segment_c, Phi, RHO, cl, cd) 
         a_new, a_prime_new = induction(f_azi, f_axi, BLADES, U0, RHO, R, r, dr, tsr, MU_ROOT)
 
         a.append(0.25 * a_new + 0.75 * a[-1])
@@ -40,7 +40,7 @@ def bem_procedure(U0: float, segment_c: float, r:float, R:float, tsr:float, segm
     return None
 
 
-def force_azi_axi(a: float, V_p: float, segment_c: float, Phi:float, RHO: float,
+def force_azi_axi(V_p: float, segment_c: float, Phi:float, RHO: float,
                    cl: float, cd: float):
     lift = 0.5 * RHO * V_p ** 2 * segment_c * cl
     drag = 0.5 * RHO * V_p ** 2 * segment_c * cd
