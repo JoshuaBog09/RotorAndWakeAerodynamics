@@ -22,7 +22,7 @@ def bem_procedure(U0: float, segment_c: float, r:float, R:float, tsr:float, segm
         V_p = np.sqrt(V_axial**2 + V_tan**2)
         Phi = np.arctan2(V_axial, V_tan) # inflow angle [rad]
         beta = segment_twist + blade_pitch
-        alpha = Phi-beta
+        alpha = Phi - beta
         
         # Interpolate polar data to find cl and cd
         cl = np.interp(alpha, polar_sheet[0,:], polar_sheet[1,:])
