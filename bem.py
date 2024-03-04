@@ -1,12 +1,34 @@
 import numpy as np
 
+def bem_procedure(U0: float, segment_c: float, r:float, R:float, tsr:float, segment_twist: float,
+                   blade_pitch: float, RHO: float, polar_sheet: np.ndarray):
 
-def force_azi_axi(a: float, U0: float, c: float, RHO: float, cl: float, cd: float):
-    vp = (1 - a) * U0
-    lift = 0.5 * RHO * vp ** 2 * c * cl
-    drag = 0.5 * RHO * vp ** 2 * c * cd
-    f_azi = lift * np.sin(twist) - drag * np.cos(twist)
-    f_axi = lift * np.cos(twist) + drag * np.sin(twist)
+    a, a_prime = 0.3, 0
+
+    V_axial = U0 * (1 - a)
+    omega = tsr * U0 / R
+    V_tan   = omega * r * (1 + a_prime)
+
+    V_p = np.sqrt(V_axial**2 + V_tan**2)
+    Phi = np.arctan2(V_axial, V_tan) # inflow angle [rad]
+    beta = segment_twist + blade_pitch
+    alpha = Phi-beta
+    
+    # Interpolate polar data to find cl and cd
+    cl = np.interp(alpha, polar_sheet[0,:], polar_sheet[1,:])
+    cd = np.interp(alpha, polar_sheet[0,:], polar_sheet[2,:])
+
+    force_azi_axi(a, U0, V_p, segment_c, Phi, RHO, cl, cd) 
+
+    return
+
+
+def force_azi_axi(a: float, U0: float, V_p: float, segment_c: float, Phi:float, RHO: float,
+                   cl: float, cd: float):
+    lift = 0.5 * RHO * V_p ** 2 * segment_c * cl
+    drag = 0.5 * RHO * V_p ** 2 * segment_c * cd
+    f_azi = lift * np.sin(Phi) - drag * np.cos(Phi)
+    f_axi = lift * np.cos(Phi) + drag * np.sin(Phi)
     return f_azi, f_axi
 
 

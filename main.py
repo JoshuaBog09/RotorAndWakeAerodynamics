@@ -20,9 +20,10 @@ cl_array = df['Cl'].to_numpy()
 cd_array = df['Cd'].to_numpy()
 cm_array = df['Cm'].to_numpy()
 
+polar_sheet = np.array([alfa_array, cl_array, cd_array, cm_array])
+
 # Constant
 RHO = 1.225 # [kg/m^3]
-
 
 # Data over alpha plots
 
