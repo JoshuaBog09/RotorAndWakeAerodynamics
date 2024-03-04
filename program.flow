@@ -1,7 +1,7 @@
 Main:
     1. Load airfoil data (Design and data)
     2. Devide blade into segments
-    3. Solve BEM for each segment in (1.)
+    3. Solve BEM for each segment in (2.)
 end Main;
 
 BEM:
