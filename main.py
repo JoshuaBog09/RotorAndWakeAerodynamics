@@ -78,4 +78,6 @@ plt.xlabel("Position of blade [m]")
 plt.ylabel("Induction factor [-]")
 plt.legend()
 plt.show()
+
+
     
