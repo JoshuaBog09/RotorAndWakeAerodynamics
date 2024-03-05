@@ -72,8 +72,9 @@ for i in np.arange(0, len(r)-1):
     a_prime_list.append(a_prime)
     r_loc.append(segment_mean)
 
-plt.plot(r_loc, a_list)
-plt.plot(r_loc, a_prime_list)
+plt.plot(r_loc, a_list, label='a')
+plt.plot(r_loc, a_prime_list, label='a_prime')
+plt.legend()
 plt.show()
 
 
