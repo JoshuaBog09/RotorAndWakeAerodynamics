@@ -74,6 +74,7 @@ for i in np.arange(0, len(r)-1):
 
 plt.plot(r_loc, a_list, label='a')
 plt.plot(r_loc, a_prime_list, label='a_prime')
+plt.xlabel('position [m]')
 plt.legend()
 plt.show()
 
