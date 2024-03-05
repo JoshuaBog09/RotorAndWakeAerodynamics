@@ -6,7 +6,8 @@ def bem_procedure(U0: float, segment_c: float, r:float, R:float, tsr:float, segm
                    dr: float):
 
     a, a_prime = [0.3], [0]
-    
+    phi_list = []
+    beta_list = []
     iterating = True
     iteration = 0
 
@@ -37,7 +38,7 @@ def bem_procedure(U0: float, segment_c: float, r:float, R:float, tsr:float, segm
         if abs(a[-1] - a[-2]) <=  0.0005 and abs(a_prime[-1] - a_prime[-2]) <= 0.0005:
             iterating = False
     
-    return None
+    return a[-1], a_prime[-1]
 
 
 def force_azi_axi(V_p: float, segment_c: float, Phi:float, RHO: float,

@@ -27,29 +27,35 @@ RHO = 1.225 # [kg/m^3]
 
 # Data over alpha plots
 
-plt.plot(alfa_array, cl_array, label="cl")
-plt.plot(alfa_array, cd_array, label="cd")
-plt.xlabel("Angle of attack [deg]")
-plt.ylabel("Coefficient [-]")
-plt.legend()
-plt.show()
+# plt.plot(alfa_array, cl_array, label="cl")
+# plt.plot(alfa_array, cd_array, label="cd")
+# plt.xlabel("Angle of attack [deg]")
+# plt.ylabel("Coefficient [-]")
+# plt.legend()
+# plt.show()
 
 
-plt.plot(cd_array, cl_array, label="cd - cl")
-plt.xlabel("cd [-]")
-plt.ylabel("cl [-]")
-plt.legend()
-plt.show()
+# plt.plot(cd_array, cl_array, label="cd - cl")
+# plt.xlabel("cd [-]")
+# plt.ylabel("cl [-]")
+# plt.legend()
+# plt.show()
 
 ## Define blade elemenets 
 
-resolution = 1000
+# resolution = 942
+resolution = 80
 r = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R
 
 # Loop over all segments and take mean conditions for further evaluation (ASSUMPTION)
 # n point of evaluation -->> leading to n-1 segments
-for i in [0]:
-
+segment = 0
+a_list = []
+a_prime_list = []
+r_loc = []
+for i in np.arange(0, len(r)-1):
+    segment += 1
+    print(f"Segment number = {segment}")
     segment_start   = r[i]
     segment_end     = r[i + 1]
     segment_dr      = segment_end - segment_start
@@ -60,6 +66,16 @@ for i in [0]:
     segment_twist = design.twist(segment_mean / design.R)
 
     # For each segment solve the Blade element momentum theory model
-    bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, design.TSR[1], segment_twist, segment_twist,
+    a, a_prime = bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, design.TSR[1], segment_twist, segment_twist,
                        RHO, polar_sheet, design.BLADES, design.start, segment_dr)
+    a_list.append(a)
+    a_prime_list.append(a_prime)
+    r_loc.append(segment_mean)
+
+plt.plot(r_loc, a_list)
+plt.plot(r_loc, a_prime_list)
+plt.show()
+
+
+
     
