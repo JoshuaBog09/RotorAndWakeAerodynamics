@@ -54,10 +54,11 @@ def induction(f_azi: float, f_axi: float, BLADES: int, U0: float, RHO: float, R:
               tsr: float, MU_ROOT: float) -> tuple:
     annuli_area = 2 * np.pi * r * dr
     ct = f_axi * BLADES * dr / (0.5 * RHO * U0 ** 2 * annuli_area)
-    a = 0.5 * (1 - np.sqrt(1 - ct))
+
+    # Review order of corrections
+    a = glauert(ct)
     a_prime = f_azi * BLADES / (2 * RHO * (2 * np.pi * r) * U0 ** 2 * (1 - a) * tsr * r / R)
 
-    a = glauert(a, ct)
     correction_prandtl = prandlt(a, BLADES, r, R, tsr, MU_ROOT)
 
     a /= correction_prandtl
@@ -66,11 +67,17 @@ def induction(f_azi: float, f_axi: float, BLADES: int, U0: float, RHO: float, R:
     return a, a_prime
 
 
-def glauert(a: float, ct: float) -> float:
+def glauert(ct: float) -> float:
     CT1 = 1.816
     CT2 = 2 * np.sqrt(CT1) - CT1
-    if ct >= CT2:
+    
+    if ct < CT2:
+        a = 0.5 * (1 - np.sqrt(1 - ct))
+    elif ct >= CT2:
         a = 1 + (ct - CT1) / (4 * np.sqrt(CT1) - 4)
+    else:
+       raise BaseException(f"Unexptected behaviour in Glauert correction")
+    
     return a
 
 
@@ -92,4 +99,16 @@ if __name__ == "__main__":
     f_cor = prandlt(0.8, design.BLADES, r, design.R, design.TSR[0], design.start)
 
     plt.plot(r / design.R, f_cor)
+    plt.grid()
+    plt.show()
+
+    cts = np.linspace(-4, 4, 1000, endpoint=True)
+    a = []
+    for ct in cts:
+        a.append(glauert(ct))
+
+    plt.plot(a, cts)
+    plt.xlim([0,1])
+    plt.ylim([0,3])
+    plt.grid()
     plt.show()
