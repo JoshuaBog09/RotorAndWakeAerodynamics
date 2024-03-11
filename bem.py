@@ -58,7 +58,10 @@ def induction(f_azi: float, f_axi: float, BLADES: int, U0: float, RHO: float, R:
     a_prime = f_azi * BLADES / (2 * RHO * (2 * np.pi * r) * U0 ** 2 * (1 - a) * tsr * r / R)
 
     a = glauert(a, ct)
-    a, a_prime = prandlt(a, a_prime, BLADES, r, R, tsr, MU_ROOT)
+    correction_prandtl = prandlt(a, BLADES, r, R, tsr, MU_ROOT)
+
+    a /= correction_prandtl
+    a_prime /= correction_prandtl
 
     return a, a_prime
 
@@ -71,14 +74,22 @@ def glauert(a: float, ct: float) -> float:
     return a
 
 
-def prandlt(a: float, a_prime: float, BLADES: int, r: float, R: float, tsr: float, MU_ROOT: float) -> tuple:
+def prandlt(a: float, BLADES: int, r: float, R: float, tsr: float, MU_ROOT: float) -> float:
     mu = r / R  # Normalised annuli position
     f_tip = 2 / np.pi * np.arccos(
-        np.exp(-0.5 * BLADES * (1 - mu) / mu * np.sqrt(1 + tsr ** 2 * mu ** 2 / (1 - a) ** 2)))
+        np.exp(-0.5 * BLADES * (1 - mu) / mu * np.sqrt(1 + (tsr ** 2 * mu ** 2) / (1 - a) ** 2)))
     f_root = 2 / np.pi * np.arccos(
-        np.exp(-0.5 * BLADES * (mu - MU_ROOT) / mu * np.sqrt(1 + tsr ** 2 * mu ** 2 / (1 - a) ** 2)))
+        np.exp(-0.5 * BLADES * (mu - MU_ROOT) / mu * np.sqrt(1 + (tsr ** 2 * mu ** 2) / (1 - a) ** 2)))
     f_total = f_tip * f_root
-    a = a / f_total
-    a_prime = a_prime / f_total
-    return a, a_prime
+    return f_total
 
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    import design
+
+    r = np.linspace(design.start, design.end, 1000, endpoint=True) * design.R
+
+    f_cor = prandlt(0.8, design.BLADES, r, design.R, design.TSR[0], design.start)
+
+    plt.plot(r / design.R, f_cor)
+    plt.show()
