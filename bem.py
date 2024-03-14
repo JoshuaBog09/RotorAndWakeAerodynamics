@@ -46,7 +46,7 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
         Numpy array containing cl and cd as a function of the angle of attack alpha
 
     BLADES : int
-        The amount of blades expressed as an integer
+        The amount of blades expressed as an integer `-`
 
     MU_ROOT : float
         Normalised start location of the airfoil of the wind turbine expressed in `-` 
@@ -55,7 +55,7 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
         Length of the blade segment expressed in `m`
 
     tolerance : float
-        Exit criteria discribing the relation between the current and previous iteration value in '-'.  
+        Exit criteria discribing the relation between the current and previous iteration value in `-`.  
 
     Returns
     -------
