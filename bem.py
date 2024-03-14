@@ -2,7 +2,7 @@ import numpy as np
 
 def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, segment_twist: float,
                    blade_pitch: float, RHO: float, polar_sheet: np.ndarray, BLADES: int, MU_ROOT: float,
-                   dr: float) -> tuple[float, float]:
+                   dr: float, tolerance: float) -> tuple[float, float]:
     """
     Main `BEM procedure`, which can be called on a given turbine design. The bem model utelises a singular anuli 
     segment as input for its computational procedure. And should therfore be called for each anuli (segment) 
@@ -52,7 +52,10 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
         Normalised start location of the airfoil of the wind turbine expressed in `-` 
     
     dr : float
-        Length of the blade segment expressed in `m` 
+        Length of the blade segment expressed in `m`
+
+    tolerance : float
+        Exit criteria discribing the relation between the current and previous iteration value in '-'.  
 
     Returns
     -------
@@ -64,7 +67,8 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
     Raises
     ------
 
-    None
+    StopIteration 
+        Raised when either of the induction factors is out of bounds 
     """
     a, a_prime = [0.3], [0]
     # phi_list = []
@@ -96,8 +100,12 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
         a.append(0.25 * a_new + 0.75 * a[-1])
         a_prime.append(0.25 * a_prime_new + 0.75 * a_prime[-1])
 
-        if abs(a[-1] - a[-2]) <=  0.0005 and abs(a_prime[-1] - a_prime[-2]) <= 0.0005:
+        if abs(a[-1] - a[-2]) <= tolerance and abs(a_prime[-1] - a_prime[-2]) <= tolerance:
             iterating = False
+
+        if not 0 < a[-1] < 1 or not 0 < a_prime[-1] < 1:
+            raise StopIteration(f"Itreration paramter a or a' out of bounds [0, 1]. \
+                                Value at failure a={a[-1]:.5f}, a'={a_prime[-1]:.5f}")
     
     return a[-1], a_prime[-1]
 

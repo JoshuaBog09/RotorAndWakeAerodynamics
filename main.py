@@ -66,8 +66,8 @@ for i in np.arange(0, len(r)-1):
     segment_twist = design.twist(segment_mean / design.R)
 
     # For each segment solve the Blade element momentum theory model
-    a, a_prime = bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, design.TSR[1], segment_twist, design.pitch,
-                       RHO, polar_sheet, design.BLADES, design.start, segment_dr)
+    a, a_prime = bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, design.TSR[0], segment_twist, design.pitch,
+                       RHO, polar_sheet, design.BLADES, design.start, segment_dr, 0.0005)
     a_list.append(a)
     a_prime_list.append(a_prime)
     r_loc.append(segment_mean)
