@@ -1,13 +1,74 @@
 import numpy as np
-import math
 
-def bem_procedure(U0: float, segment_c: float, r:float, R:float, tsr:float, segment_twist: float,
+def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, segment_twist: float,
                    blade_pitch: float, RHO: float, polar_sheet: np.ndarray, BLADES: int, MU_ROOT: float,
-                   dr: float):
+                   dr: float) -> tuple[float, float]:
+    """
+    Main `BEM procedure`, which can be called on a given turbine design. The bem model utelises a singular anuli 
+    segment as input for its computational procedure. And should therfore be called for each anuli (segment) 
+    of the given turbine, to obtain the full spectrum of results. The bem model will iterate over a range of 
+    induction factors, to balance out the loads, untill the specified tolarenaces are met. Upon conversion of the
+    program will return the last found induction factors (axial and azimuthal) which lead to satisfaction of the 
+    specified covergence tolerance requirement.
 
+    The iteration methode which is utelised is based on the previous and current value in evaluation, and can 
+    be desribed as follows: `xᵢ = 0.25 * xᵢ + 0.75 * xᵢ₋₁` where x is the parameter, which is altered to obtain 
+    convergence.
+
+    Parameters
+    ----------
+
+    U0 : float
+        Upstream wind velocity in `m/s` 
+
+    segment_c : float
+        Chord length of the airfoil segment in the anuli being anelysed expressed in `m`
+
+    r : float 
+        Current blade length wise position of the evaluated segment expressed in `m`
+
+    R : float
+        Blade length of the turbine expressed in `m` 
+
+    tsr : float
+        Tip speed ratio in `-`
+
+    segment_twist : float
+        Twist angle of the segment expressed in `deg`
+    
+    blade_pitch : float
+        Pitch angle expressed in `deg`
+
+    RHO : float
+        Air density expressed in `kg/m^3`
+
+    polar_sheet : np.ndarray
+        Numpy array containing cl and cd as a function of the angle of attack alpha
+
+    BLADES : int
+        The amount of blades expressed as an integer
+
+    MU_ROOT : float
+        Normalised start location of the airfoil of the wind turbine expressed in `-` 
+    
+    dr : float
+        Length of the blade segment expressed in `m` 
+
+    Returns
+    -------
+
+    tuple
+        The axial induction factor of the segment at convergence : float
+        The azimuthal induction factor of the segment at convergence : float        
+
+    Raises
+    ------
+
+    None
+    """
     a, a_prime = [0.3], [0]
-    phi_list = []
-    beta_list = []
+    # phi_list = []
+    # beta_list = []
     iterating = True
     iteration = 0
 
@@ -42,7 +103,7 @@ def bem_procedure(U0: float, segment_c: float, r:float, R:float, tsr:float, segm
 
 
 def force_azi_axi(V_p: float, segment_c: float, Phi:float, RHO: float,
-                   cl: float, cd: float):
+                   cl: float, cd: float) -> tuple[float, float]:
     lift = 0.5 * RHO * V_p ** 2 * segment_c * cl
     drag = 0.5 * RHO * V_p ** 2 * segment_c * cd
     f_azi = lift * np.sin(Phi) - drag * np.cos(Phi)
@@ -51,7 +112,7 @@ def force_azi_axi(V_p: float, segment_c: float, Phi:float, RHO: float,
 
 
 def induction(f_azi: float, f_axi: float, BLADES: int, U0: float, RHO: float, R: float, r: float, dr: float, 
-              tsr: float, MU_ROOT: float) -> tuple:
+              tsr: float, MU_ROOT: float) -> tuple[float, float]:
     annuli_area = 2 * np.pi * r * dr
     ct = f_axi * BLADES * dr / (0.5 * RHO * U0 ** 2 * annuli_area)
 
