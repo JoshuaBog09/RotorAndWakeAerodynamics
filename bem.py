@@ -112,8 +112,8 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
 
 def force_azi_axi(V_p: float, segment_c: float, Phi:float, RHO: float,
                    cl: float, cd: float) -> tuple[float, float]:
-    lift = 0.5 * RHO * V_p ** 2 * segment_c * cl
-    drag = 0.5 * RHO * V_p ** 2 * segment_c * cd
+    lift = 0.5 * RHO * segment_c * cl * V_p ** 2
+    drag = 0.5 * RHO * segment_c * cd * V_p ** 2
     f_azi = lift * np.sin(Phi) - drag * np.cos(Phi)
     f_axi = lift * np.cos(Phi) + drag * np.sin(Phi)
     return f_azi, f_axi
@@ -137,6 +137,27 @@ def induction(f_azi: float, f_axi: float, BLADES: int, U0: float, RHO: float, R:
 
 
 def glauert(ct: float) -> float:
+    """
+    Perform glauert (heavily loaded streamtubes) correction based on the thrust coefficient. 
+    
+    Parameters
+    ----------
+
+    ct : float
+        Thrust coefficient expressed in `-`
+    
+    Returns
+    -------
+
+    float
+        Corrected axial induction (a) factor `-`
+    
+    Raises
+    ------
+
+    None
+    
+    """
     CT1 = 1.816
     CT2 = 2 * np.sqrt(CT1) - CT1
     
@@ -151,6 +172,44 @@ def glauert(ct: float) -> float:
 
 
 def prandlt(a: float, BLADES: int, r: float, R: float, tsr: float, MU_ROOT: float) -> float:
+    """
+    Provided the prandtl (correction for finite number of blades) corrective term based on the position on the blade. 
+    Correction can be applied by deviding both the axial and azimuthal induction factor utelising the returned corective 
+    factor.
+    
+    Parameters
+    ----------
+
+    a : float
+        Axial induction factor expressed in `-`
+
+    BLADES : int
+        The amount of blades expressed as an integer `-`
+
+    r : float 
+        Current blade length wise position of the evaluated segment expressed in `m`
+
+    R : float
+        Blade length of the turbine expressed in `m`
+    
+    tsr : float
+        Tip speed ratio in `-`
+
+    MU_ROOT : float
+        Normalised start location of the airfoil of the wind turbine expressed in `-`
+
+    Returns
+    -------
+
+    float
+        Corrected factor (f_cor) for both the axial and azimuthal induction factor `-`
+    
+    Raises
+    ------
+
+    None
+    
+    """
     mu = r / R  # Normalised annuli position
     f_tip = 2 / np.pi * np.arccos(
         np.exp(-0.5 * BLADES * (1 - mu) / mu * np.sqrt(1 + (tsr ** 2 * mu ** 2) / (1 - a) ** 2)))
