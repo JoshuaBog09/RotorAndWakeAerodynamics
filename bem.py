@@ -2,7 +2,7 @@ import numpy as np
 
 def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, segment_twist: float,
                    blade_pitch: float, RHO: float, polar_sheet: np.ndarray, BLADES: int, MU_ROOT: float,
-                   dr: float, tolerance: float) -> tuple[float, float]:
+                   dr: float, tolerance: float) -> tuple[float, float, float, float]:
     """
     Main `BEM procedure`, which can be called on a given turbine design. The bem model utelises a singular anuli 
     segment as input for its computational procedure. And should therfore be called for each anuli (segment) 
@@ -22,7 +22,7 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
         Upstream wind velocity in `m/s` 
 
     segment_c : float
-        Chord length of the airfoil segment in the anuli being anelysed expressed in `m`
+        Chord length of the airfoil segment in the annuli being analysed expressed in `m`
 
     r : float 
         Current blade length wise position of the evaluated segment expressed in `m`
@@ -62,7 +62,9 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
 
     tuple
         The axial induction factor of the segment at convergence : float
-        The azimuthal induction factor of the segment at convergence : float        
+        The azimuthal induction factor of the segment at convergence : float
+        The inflow angle of the segment : float
+        The angle of attack of the segment : float
 
     Raises
     ------
@@ -107,7 +109,7 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
             raise StopIteration(f"Itreration paramter a or a' out of bounds [0, 1]. \
                                 Value at failure a={a[-1]:.5f}, a'={a_prime[-1]:.5f}")
     
-    return a[-1], a_prime[-1]
+    return a[-1], a_prime[-1], Phi, alpha
 
 
 def force_azi_axi(V_p: float, segment_c: float, Phi:float, RHO: float,
@@ -218,6 +220,7 @@ def prandlt(a: float, BLADES: int, r: float, R: float, tsr: float, MU_ROOT: floa
     f_total = f_tip * f_root
     return f_total
 
+
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import design
@@ -226,7 +229,8 @@ if __name__ == "__main__":
 
     f_cor = prandlt(0.8, design.BLADES, r, design.R, design.TSR[0], design.start)
 
-    plt.plot(r / design.R, f_cor)
+    plt.plot(r / design.R, f_cor), plt.title("Prandtl's correction")
+    plt.ylabel("Prandtl's correction factor"), plt.xlabel('r/R')
     plt.grid()
     plt.show()
 
@@ -235,8 +239,9 @@ if __name__ == "__main__":
     for ct in cts:
         a.append(glauert(ct))
 
-    plt.plot(a, cts)
-    plt.xlim([0,1])
-    plt.ylim([0,3])
+    plt.plot(a, cts), plt.title(r"$C_T(a)$ including Glauert's correction")
+    plt.ylabel(r'$C_T$'), plt.xlabel('a')
+    plt.xlim([0,1]), plt.xticks(np.arange(0, 1.1, 0.1))
+    plt.ylim([0,2])
     plt.grid()
     plt.show()

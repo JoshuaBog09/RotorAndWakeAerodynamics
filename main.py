@@ -27,18 +27,22 @@ RHO = 1.225 # [kg/m^3]
 
 # Data over alpha plots
 
-# plt.plot(alfa_array, cl_array, label="cl")
-# plt.plot(alfa_array, cd_array, label="cd")
+# plt.plot(alfa_array, cl_array, label="$C_L$")
+# plt.plot(alfa_array, cd_array, label="$C_D$")
+# plt.xlim(-30, 30)
 # plt.xlabel("Angle of attack [deg]")
 # plt.ylabel("Coefficient [-]")
 # plt.legend()
+# plt.grid()
 # plt.show()
-
-
-# plt.plot(cd_array, cl_array, label="cd - cl")
-# plt.xlabel("cd [-]")
-# plt.ylabel("cl [-]")
+#
+#
+# plt.plot(cd_array, cl_array, label="$C_D$ vs. $C_L$")
+# plt.xlim(0, 0.1)
+# plt.xlabel(r"$C_D$ [-]")
+# plt.ylabel(r"$C_L$ [-]")
 # plt.legend()
+# plt.grid()
 # plt.show()
 
 ## Define blade elemenets 
@@ -52,6 +56,8 @@ r = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R
 segment = 0
 a_list = []
 a_prime_list = []
+phi_list = []
+alpha_list = []
 r_loc = []
 for i in np.arange(0, len(r)-1):
     segment += 1
@@ -66,12 +72,21 @@ for i in np.arange(0, len(r)-1):
     segment_twist = design.twist(segment_mean / design.R)
 
     # For each segment solve the Blade element momentum theory model
-    a, a_prime = bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, design.TSR[0], segment_twist, design.pitch,
-                       RHO, polar_sheet, design.BLADES, design.start, segment_dr, 0.0005)
+    a, a_prime, phi, alpha = bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, design.TSR[1], segment_twist, design.pitch,
+                        RHO, polar_sheet, design.BLADES, design.start, segment_dr, 0.0005)
     a_list.append(a)
     a_prime_list.append(a_prime)
+    phi_list.append(phi)
+    alpha_list.append(alpha)
     r_loc.append(segment_mean)
 
+plt.plot(r_loc, phi_list, label=r'$\phi$')
+plt.plot(r_loc, alpha_list, label=r'$\alpha$')
+plt.legend()
+plt.grid()
+plt.show()
+
+plt.title('Induction factor for TSR:'+str(design.TSR[1]))
 plt.plot(r_loc, a_list, label='a')
 plt.plot(r_loc, a_prime_list, label='a_prime')
 plt.xlabel("Position of blade [m]")
