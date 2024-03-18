@@ -116,8 +116,8 @@ def force_azi_axi(V_p: float, segment_c: float, Phi:float, RHO: float,
                    cl: float, cd: float) -> tuple[float, float]:
     lift = 0.5 * RHO * segment_c * cl * V_p ** 2
     drag = 0.5 * RHO * segment_c * cd * V_p ** 2
-    f_azi = lift * np.sin(Phi) - drag * np.cos(Phi)
-    f_axi = lift * np.cos(Phi) + drag * np.sin(Phi)
+    f_azi = lift * np.sin(Phi) - drag * np.cos(Phi)     # f_tan
+    f_axi = lift * np.cos(Phi) + drag * np.sin(Phi)     # f_norm
     return f_azi, f_axi
 
 

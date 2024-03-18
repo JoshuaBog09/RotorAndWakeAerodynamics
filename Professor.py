@@ -199,7 +199,7 @@ twist_distribution = -14 * (1 - r_R) + pitch  # degrees
 
 # define flow conditions
 Uinf = 10  # unperturbed wind speed in m/s
-TSR = 8  # tip speed ratio
+TSR = 6  # tip speed ratio
 Radius = 50
 Omega = Uinf * TSR / Radius
 NBlades = 3
