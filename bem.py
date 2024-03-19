@@ -72,7 +72,7 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
     StopIteration 
         Raised when either of the induction factors is out of bounds 
     """
-    a, a_prime = [0.3], [0]
+    a, a_prime = [0.3], [0.]
     # phi_list = []
     # beta_list = []
     iterating = True
@@ -93,8 +93,8 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
         alpha = Phi - beta
         
         # Interpolate polar data to find cl and cd
-        cl = np.interp(np.degrees(alpha), polar_sheet[0,:], polar_sheet[1,:])
-        cd = np.interp(np.degrees(alpha), polar_sheet[0,:], polar_sheet[2,:])
+        cl = float(np.interp(np.degrees(alpha), polar_sheet[0,:], polar_sheet[1,:]))
+        cd = float(np.interp(np.degrees(alpha), polar_sheet[0,:], polar_sheet[2,:]))
 
         f_azi, f_axi = force_azi_axi(V_p, segment_c, Phi, RHO, cl, cd) 
         a_new, a_prime_new = induction(f_azi, f_axi, BLADES, U0, RHO, R, r, dr, tsr, MU_ROOT)
