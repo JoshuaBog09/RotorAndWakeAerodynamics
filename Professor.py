@@ -116,7 +116,7 @@ def loadBladeElement(vnorm, vtan, r_R, chord, twist, polar_alpha, polar_cl, pola
     fnorm = lift * np.cos(inflowangle) + drag * np.sin(inflowangle)
     ftan = lift * np.sin(inflowangle) - drag * np.cos(inflowangle)
     gamma = 0.5 * np.sqrt(vmag2) * cl * chord
-    return fnorm, ftan, gamma, inflowangle, alpha
+    return fnorm, ftan, gamma, np.degrees(inflowangle), alpha
 
 
 def solveStreamtube(Uinf, r1_R, r2_R, rootradius_R, tipradius_R, Omega, Radius, NBlades, chord, twist, polar_alpha,
