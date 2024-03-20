@@ -47,7 +47,7 @@ RHO = 1.225  # [kg/m^3]
 ## Define blade elemenets 
 
 # resolution = 942
-resolution = 150
+resolution = 100
 r = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R
 
 # Loop over each TSR value
@@ -78,7 +78,8 @@ for tsr_value in design.TSR:
         # For each segment solve the Blade element momentum theory model
         a, a_prime, phi, alpha = bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, tsr_value,
                                                    segment_twist, design.pitch,
-                                                   RHO, polar_sheet, design.BLADES, design.start, segment_dr, 0.0001)
+                                                   RHO, polar_sheet, design.BLADES, design.start, segment_dr, 0.0001,
+                                                   np.radians(design.YAW[2]))
         a_list.append(a)
         a_prime_list.append(a_prime)
         phi_list.append(phi)
@@ -107,6 +108,7 @@ ax_induction.set_ylabel("Induction factor [-]")
 handles, labels = plt.gca().get_legend_handles_labels()
 ax_induction.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
 ax_induction.set_title(f'Induction factor for TSR: 6,8,10')
+ax_induction.set_ylim([0, 1])
 ax_induction.grid()
 # plt.show()
 

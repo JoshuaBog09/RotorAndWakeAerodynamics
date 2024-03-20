@@ -2,7 +2,7 @@ import numpy as np
 
 def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, segment_twist: float,
                    blade_pitch: float, RHO: float, polar_sheet: np.ndarray, BLADES: int, MU_ROOT: float,
-                   dr: float, tolerance: float) -> tuple[float, float, float, float]:
+                   dr: float, tolerance: float, yaw_angle: float) -> tuple[float, float, float, float]:
     """
     Main `BEM procedure`, which can be called on a given turbine design. The bem model utelises a singular anuli 
     segment as input for its computational procedure. And should therfore be called for each anuli (segment) 
@@ -83,7 +83,7 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
         iteration += 1
         print(f"{iteration}: a = {a[-1]}, a'= {a_prime[-1]}")
         
-        V_axial = U0 * (1 - a[-1])  # [m/s]
+        V_axial = U0 * np.cos(yaw_angle) * (1 - a[-1])  # [m/s]
         omega = tsr * U0 / R    # [rad/s]
         V_tan   = omega * r * (1 + a_prime[-1]) # [m/s]
 
@@ -97,7 +97,7 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
         cd = float(np.interp(np.degrees(alpha), polar_sheet[0,:], polar_sheet[2,:]))
 
         f_azi, f_axi = force_azi_axi(V_p, segment_c, Phi, RHO, cl, cd) 
-        a_new, correction_prandtl = induction(f_azi, f_axi, BLADES, U0, RHO, R, r, dr, tsr, MU_ROOT)
+        a_new, correction_prandtl = induction(f_azi, f_axi, BLADES, U0, RHO, R, r, dr, tsr, MU_ROOT, a[-1], yaw_angle)
 
         a.append(0.25 * a_new + 0.75 * a[-1])
 
@@ -105,6 +105,8 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
         a_prime_new /= correction_prandtl
 
         a_prime.append(0.25 * a_prime_new + 0.75 * a_prime[-1])
+        if a_prime[-1] < 0:
+            a_prime[-1] = 0.00000001
 
         if abs(a[-1] - a[-2]) <= tolerance and abs(a_prime[-1] - a_prime[-2]) <= tolerance:
             iterating = False
@@ -126,9 +128,15 @@ def force_azi_axi(V_p: float, segment_c: float, Phi:float, RHO: float,
 
 
 def induction(f_azi: float, f_axi: float, BLADES: int, U0: float, RHO: float, R: float, r: float, dr: float, 
-              tsr: float, MU_ROOT: float) -> tuple[float, float]:
+              tsr: float, MU_ROOT: float, a: float, yaw_angle: float) -> tuple[float, float]:
     annuli_area = 2 * np.pi * r * dr
+    skew_angle = (0.6 * a +1) * yaw_angle
+    # ct = 4 * a * (np.cos(yaw_angle) + np.sin(yaw_angle) * np.tan(skew_angle / 2) - a * 1 / (np.cos(skew_angle / 2)) ** 2)
     ct = f_axi * BLADES * dr / (0.5 * RHO * U0 ** 2 * annuli_area)
+    # if yaw_angle !=0:
+    #     ct = 4 * a * (np.cos(yaw_angle) + np.sin(yaw_angle) * np.tan(skew_angle/2) - a * 1/(np.cos(skew_angle/2))**2)
+    # else:
+    #     ct = f_axi * BLADES * dr / (0.5 * RHO * U0 ** 2 * annuli_area)
 
     # Review order of corrections
     a = glauert(ct)
