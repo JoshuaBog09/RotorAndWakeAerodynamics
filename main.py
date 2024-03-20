@@ -47,7 +47,7 @@ RHO = 1.225  # [kg/m^3]
 ## Define blade elemenets 
 
 # resolution = 942
-resolution = 80
+resolution = 150
 r = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R
 
 # Loop over each TSR value
@@ -78,7 +78,7 @@ for tsr_value in design.TSR:
         # For each segment solve the Blade element momentum theory model
         a, a_prime, phi, alpha = bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, tsr_value,
                                                    segment_twist, design.pitch,
-                                                   RHO, polar_sheet, design.BLADES, design.start, segment_dr, 0.0005)
+                                                   RHO, polar_sheet, design.BLADES, design.start, segment_dr, 0.0001)
         a_list.append(a)
         a_prime_list.append(a_prime)
         phi_list.append(phi)
@@ -97,26 +97,28 @@ for tsr_value in design.TSR:
 blue_color = ['#00CCFF', '#005FFF', '#0000FF']
 red_color = ['#FFCCCC', '#FF5F5F', '#FF0000']
 
+fig_induction, ax_induction = plt.subplots(nrows=1, ncols=1)
 for i, result in enumerate(all_results):
-    plt.plot(result['r_loc'], result['a_list'], label=f"TSR: {result['tsr']}, a", color=blue_color[i])
-    plt.plot(result['r_loc'], result['a_prime_list'], label=f"TSR: {result['tsr']}, a'", color=red_color[i])
-plt.xlabel("Normalized position of blade (r/R)")
-plt.ylabel(r"$\phi$, $\alpha$ [-]")
+    ax_induction.plot(result['r_loc'], result['a_list'], label=f"TSR: {result['tsr']}, a", color=blue_color[i])
+    ax_induction.plot(result['r_loc'], result['a_prime_list'], label=f"TSR: {result['tsr']}, a'", color=red_color[i])
+ax_induction.set_xlabel("Normalized position of blade (r/R)")
+ax_induction.set_ylabel("Induction factor [-]")
 # Rearrange legend
 handles, labels = plt.gca().get_legend_handles_labels()
-plt.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
-plt.title(f'Induction factor for TSR: 6,8,10')
-plt.grid()
-plt.show()
+ax_induction.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
+ax_induction.set_title(f'Induction factor for TSR: 6,8,10')
+ax_induction.grid()
+# plt.show()
 
+fig_phi, ax_phi = plt.subplots(nrows=1, ncols=1)
 for i, result in enumerate(all_results):
-    plt.plot(result['r_loc'], result['phi_list'], label=f"TSR: {result['tsr']}, $\\phi$", color=blue_color[i])
-    plt.plot(result['r_loc'], result['alpha_list'], label=f"TSR: {result['tsr']}, $\\alpha$", color=red_color[i])
-plt.xlabel("Normalized position of blade (r/R)")
-plt.ylabel("Induction factor [-]")
+    ax_phi.plot(result['r_loc'], np.degrees(result['phi_list']), label=f"TSR: {result['tsr']}, $\\phi$", color=blue_color[i])
+    ax_phi.plot(result['r_loc'], np.degrees(result['alpha_list']), label=f"TSR: {result['tsr']}, $\\alpha$", color=red_color[i])
+ax_phi.set_xlabel("Normalized position of blade (r/R)")
+ax_phi.set_ylabel(r"$\phi$, $\alpha$ [-]")
 # Rearrange legend
 handles, labels = plt.gca().get_legend_handles_labels()
-plt.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
-plt.grid()
+ax_phi.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
+ax_phi.grid()
 plt.show()
 

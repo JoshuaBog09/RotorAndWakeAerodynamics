@@ -72,7 +72,7 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
     StopIteration 
         Raised when either of the induction factors is out of bounds 
     """
-    a, a_prime = [0.3], [0.]
+    a, a_prime = [0.3], [0.]    # Initial inductions
     # phi_list = []
     # beta_list = []
     iterating = True
@@ -83,23 +83,27 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
         iteration += 1
         print(f"{iteration}: a = {a[-1]}, a'= {a_prime[-1]}")
         
-        V_axial = U0 * (1 - a[-1])
-        omega = tsr * U0 / R
-        V_tan   = omega * r * (1 + a_prime[-1])
+        V_axial = U0 * (1 - a[-1])  # [m/s]
+        omega = tsr * U0 / R    # [rad/s]
+        V_tan   = omega * r * (1 + a_prime[-1]) # [m/s]
 
-        V_p = np.sqrt(V_axial**2 + V_tan**2)
+        V_p = np.sqrt(V_axial**2 + V_tan**2)    # [m/s]
         Phi = np.arctan2(V_axial, V_tan) # inflow angle [rad]
-        beta = np.radians(segment_twist) + np.radians(blade_pitch)
-        alpha = Phi - beta
+        beta = np.radians(segment_twist) + np.radians(blade_pitch) # [rad]
+        alpha = Phi - beta # [rad]
         
         # Interpolate polar data to find cl and cd
         cl = float(np.interp(np.degrees(alpha), polar_sheet[0,:], polar_sheet[1,:]))
         cd = float(np.interp(np.degrees(alpha), polar_sheet[0,:], polar_sheet[2,:]))
 
         f_azi, f_axi = force_azi_axi(V_p, segment_c, Phi, RHO, cl, cd) 
-        a_new, a_prime_new = induction(f_azi, f_axi, BLADES, U0, RHO, R, r, dr, tsr, MU_ROOT)
+        a_new, correction_prandtl = induction(f_azi, f_axi, BLADES, U0, RHO, R, r, dr, tsr, MU_ROOT)
 
         a.append(0.25 * a_new + 0.75 * a[-1])
+
+        a_prime_new = f_azi * BLADES / (2 * RHO * (2 * np.pi * r) * U0 ** 2 * (1 - a[-1]) * tsr * r / R)
+        a_prime_new /= correction_prandtl
+
         a_prime.append(0.25 * a_prime_new + 0.75 * a_prime[-1])
 
         if abs(a[-1] - a[-2]) <= tolerance and abs(a_prime[-1] - a_prime[-2]) <= tolerance:
@@ -128,14 +132,14 @@ def induction(f_azi: float, f_axi: float, BLADES: int, U0: float, RHO: float, R:
 
     # Review order of corrections
     a = glauert(ct)
-    a_prime = f_azi * BLADES / (2 * RHO * (2 * np.pi * r) * U0 ** 2 * (1 - a) * tsr * r / R)
-
     correction_prandtl = prandlt(a, BLADES, r, R, tsr, MU_ROOT)
-
     a /= correction_prandtl
-    a_prime /= correction_prandtl
 
-    return a, a_prime
+    # a_prime = f_azi * BLADES / (2 * RHO * (2 * np.pi * r) * U0 ** 2 * (1 - a) * tsr * r / R)
+
+    # a_prime /= correction_prandtl
+
+    return a, correction_prandtl
 
 
 def glauert(ct: float) -> float:
@@ -220,28 +224,45 @@ def prandlt(a: float, BLADES: int, r: float, R: float, tsr: float, MU_ROOT: floa
     f_total = f_tip * f_root
     return f_total
 
+def prandtl_carlos(r_R, rootradius_R, tipradius_R, TSR, NBlades, axial_induction):
+    temp1 = -NBlades / 2 * (tipradius_R - r_R) / r_R * np.sqrt(1 + (TSR * r_R)**2 / (1 - axial_induction)**2)
+    ftip = 2/np.pi * np.arccos(np.exp(temp1))
+    for i in range(len(ftip)):
+        if (np.isnan(ftip[i])):
+            ftip[i]=0
+    temp1 = NBlades / 2 * (rootradius_R - r_R) / r_R * np.sqrt(
+        1 + (TSR * r_R)**2 / (1 - axial_induction)**2)
+    froot = 2/np.pi * np.arccos(np.exp(temp1))
+    for i in range(len(froot)):
+        if (np.isnan(froot[i])):
+            froot[i]=0
+    ftotal = froot*ftip
+    return ftotal
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import design
 
-    r = np.linspace(design.start, design.end, 1000, endpoint=True) * design.R
+    r = np.linspace(design.start, design.end, 10000, endpoint=True) * design.R
 
-    f_cor = prandlt(0.8, design.BLADES, r, design.R, design.TSR[0], design.start)
-
-    plt.plot(r / design.R, f_cor), plt.title("Prandtl's correction")
-    plt.ylabel("Prandtl's correction factor"), plt.xlabel('r/R')
-    plt.grid()
-    plt.show()
+    f_cor = prandlt(0.4, design.BLADES, r, design.R, design.TSR[0], design.start)
+    f_cor_carlos = prandtl_carlos(r/design.R, design.start, design.end, design.TSR[0], design.BLADES, 0.4)
+    fig_prandtl, ax_prandtl = plt.subplots(nrows=1, ncols=1)
+    ax_prandtl.plot(r / design.R, f_cor), ax_prandtl.set_title("Prandtl's correction")
+    ax_prandtl.plot(r / design.R, f_cor_carlos)
+    ax_prandtl.set_ylabel("Prandtl's correction factor"), ax_prandtl.set_xlabel('r/R')
+    ax_prandtl.grid()
+    # plt.show()
 
     cts = np.linspace(-4, 4, 1000, endpoint=True)
     a = []
     for ct in cts:
         a.append(glauert(ct))
 
-    plt.plot(a, cts), plt.title(r"$C_T(a)$ including Glauert's correction")
-    plt.ylabel(r'$C_T$'), plt.xlabel('a')
-    plt.xlim([0,1]), plt.xticks(np.arange(0, 1.1, 0.1))
-    plt.ylim([0,2])
-    plt.grid()
+    fig_glauert, ax_glauert = plt.subplots(nrows=1, ncols=1)
+    ax_glauert.plot(a, cts), plt.title(r"$C_T(a)$ including Glauert's correction")
+    ax_glauert.set_ylabel(r'$C_T$'), plt.xlabel('a')
+    ax_glauert.set_xlim([0,1]), ax_glauert.set_xticks(np.arange(0, 1.1, 0.1))
+    ax_glauert.set_ylim([0,2])
+    ax_glauert.grid()
     plt.show()
