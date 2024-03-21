@@ -83,7 +83,7 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
     while iterating:
         
         iteration += 1
-        print(f"{iteration}: a = {a[-1]}, a'= {a_prime[-1]}")
+        #print(f"{iteration}: a = {a[-1]}, a'= {a_prime[-1]}")
         
         V_axial = U0 * (1 - a[-1])  # [m/s]
         omega = tsr * U0 / R    # [rad/s]

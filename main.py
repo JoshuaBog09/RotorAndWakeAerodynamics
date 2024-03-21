@@ -52,6 +52,7 @@ r = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R
 
 # Loop over each TSR value
 all_results = []
+tot_thrust_list, tot_torque_list = [], []
 for tsr_value in design.TSR:
     print(f"Calculations for TSR: {tsr_value}")
 
@@ -62,11 +63,11 @@ for tsr_value in design.TSR:
     a_prime_list = []
     phi_list = []
     alpha_list = []
-    r_loc = []
+    r_loc_list = []
     f_azi_list, f_axi_list = [], []
     for i in np.arange(0, len(r) - 1):
         segment += 1
-        print(f"Segment number = {segment}")
+        # print(f"Segment number = {segment}")
         segment_start = r[i]
         segment_end = r[i + 1]
         segment_dr = segment_end - segment_start
@@ -84,19 +85,27 @@ for tsr_value in design.TSR:
         a_prime_list.append(a_prime)
         phi_list.append(phi)
         alpha_list.append(alpha)
-        r_loc.append(segment_mean / design.R)
-        f_azi_list.append(f_azi / (0.5*RHO*design.U0**2*design.R))
-        f_axi_list.append(f_axi / (0.5*RHO*design.U0**2*design.R))
+        r_loc_list.append(segment_mean / design.R)
+        f_azi_list.append(f_azi)  # f_tan
+        f_axi_list.append(f_axi)  # f_norm
+
+    # Calculating the total thrust, power and torque
+    total_thrust = np.sum(design.BLADES * np.array(f_axi_list) * segment_dr)
+    total_power = np.sum(segment_dr * design.BLADES * np.array(f_azi_list) * np.array(r_loc_list) * tsr_value/design.U0)
+    total_torque = np.sum(segment_dr * design.BLADES * np.array(f_azi_list) * (np.array(r_loc_list) * design.R) * segment_dr)
+    # C_T = total_thrust / (0.5 * RHO * design.U0 ** 2 * np.pi * design.R ** 2)
+    # C_P = total_power / (0.5 * RHO * design.U0 ** 3 * np.pi * design.R ** 2)
+    tot_thrust_list.append(total_thrust), tot_torque_list.append(total_torque)
 
     all_results.append({
         'tsr': tsr_value,
-        'a_list': a_list,
-        'a_prime_list': a_prime_list,
-        'phi_list': phi_list,
-        'alpha_list': alpha_list,
-        'r_loc': r_loc,
-        'f_azi_list': f_azi_list,
-        'f_axi_list': f_axi_list
+        'a': a_list,
+        'a_prime': a_prime_list,
+        'phi': phi_list,
+        'alpha': alpha_list,
+        'r_loc': r_loc_list,
+        'f_azi': np.array(f_azi_list),
+        'f_axi': np.array(f_axi_list),
     })
 
 blue_color = ['#00CCFF', '#005FFF', '#0000FF']
@@ -104,8 +113,8 @@ red_color = ['#FFCCCC', '#FF5F5F', '#FF0000']
 
 fig_induction, ax_induction = plt.subplots(nrows=1, ncols=1)
 for i, result in enumerate(all_results):
-    ax_induction.plot(result['r_loc'], result['a_list'], label=f"TSR: {result['tsr']}, a", color=blue_color[i])
-    ax_induction.plot(result['r_loc'], result['a_prime_list'], label=f"TSR: {result['tsr']}, a'", color=red_color[i])
+    ax_induction.plot(result['r_loc'], result['a'], label=f"TSR: {result['tsr']}, a", color=blue_color[i])
+    ax_induction.plot(result['r_loc'], result['a_prime'], label=f"TSR: {result['tsr']}, a'", color=red_color[i])
 ax_induction.set_xlabel("Normalized position of blade (r/R)")
 ax_induction.set_ylabel("Induction factor [-]")
 # Rearrange legend
@@ -117,8 +126,8 @@ ax_induction.grid()
 
 fig_phi, ax_phi = plt.subplots(nrows=1, ncols=1)
 for i, result in enumerate(all_results):
-    ax_phi.plot(result['r_loc'], np.degrees(result['phi_list']), label=f"TSR: {result['tsr']}, $\\phi$", color=blue_color[i])
-    ax_phi.plot(result['r_loc'], np.degrees(result['alpha_list']), label=f"TSR: {result['tsr']}, $\\alpha$", color=red_color[i])
+    ax_phi.plot(result['r_loc'], np.degrees(result['phi']), label=f"TSR: {result['tsr']}, $\\phi$", color=blue_color[i])
+    ax_phi.plot(result['r_loc'], np.degrees(result['alpha']), label=f"TSR: {result['tsr']}, $\\alpha$", color=red_color[i])
 ax_phi.set_xlabel("Normalized position of blade (r/R)")
 ax_phi.set_ylabel(r"$\phi$, $\alpha$ [-]")
 # Rearrange legend
@@ -128,13 +137,28 @@ ax_phi.grid()
 # plt.show()
 
 fig_force, ax_force = plt.subplots(nrows=1, ncols=1)
+n_dim_force = 0.5*RHO*design.U0**2*design.R
 for i, result in enumerate(all_results):
-    ax_force.plot(result['r_loc'], result['f_azi_list'], label=f"TSR: {result['tsr']}, $F_{{tan}}$", color=blue_color[i])
-    ax_force.plot(result['r_loc'], result['f_axi_list'], label=f"TSR: {result['tsr']}, $F_{{norm}}$", color=red_color[i])
+    ax_force.plot(result['r_loc'], result['f_azi']/n_dim_force, label=f"TSR: {result['tsr']}, $F_{{tan}}$", color=blue_color[i])
+    ax_force.plot(result['r_loc'], result['f_axi']/n_dim_force, label=f"TSR: {result['tsr']}, $F_{{norm}}$", color=red_color[i])
 ax_force.set_xlabel("Normalized position of blade (r/R)")
 ax_force.set_ylabel(r"$C_t$, $C_n$ [-]")
 # Rearrange legend
 handles, labels = plt.gca().get_legend_handles_labels()
 ax_force.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
 ax_force.grid()
+plt.show()
+
+fig_tot_force, (ax_thrust, ax_torque) = plt.subplots(nrows=1, ncols=2)
+ax_thrust.scatter(design.TSR, tot_thrust_list, label=r"$T_{total}$", color='blue')
+ax_thrust.set_xlabel("Tip speed ratio (TSR)")
+ax_thrust.set_ylabel(r"$T_{tot}$ [N]")
+ax_thrust.grid()
+ax_thrust.set_title("Total Thrust")
+ax_torque.scatter(design.TSR, tot_torque_list, label=r"$Q_{total}$", color='red')
+ax_torque.set_xlabel("Tip speed ratio (TSR)")
+ax_torque.set_ylabel(r"$Q_{tot}$ [Nm]")
+ax_torque.grid()
+ax_torque.set_title("Total Torque")
+plt.tight_layout()
 plt.show()

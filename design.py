@@ -10,7 +10,7 @@ twist = lambda r_over_R : 14 * (1 - r_over_R)       # [deg]
 chord = lambda r_over_R : (3 * (1 - r_over_R) + 1)  # [m]
 pitch = - 2     # [deg]
 
-U0 = 10             # [m/s]
+U0 = 1             # [m/s]
 TSR = [6, 8, 10]
 YAW = [0, 15, 30]   # Yaw expressed in degress 
 
