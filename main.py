@@ -63,6 +63,7 @@ for tsr_value in design.TSR:
     phi_list = []
     alpha_list = []
     r_loc = []
+    f_azi_list, f_axi_list = [], []
     for i in np.arange(0, len(r) - 1):
         segment += 1
         print(f"Segment number = {segment}")
@@ -76,7 +77,7 @@ for tsr_value in design.TSR:
         segment_twist = design.twist(segment_mean / design.R)
 
         # For each segment solve the Blade element momentum theory model
-        a, a_prime, phi, alpha = bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, tsr_value,
+        a, a_prime, phi, alpha, f_azi, f_axi = bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, tsr_value,
                                                    segment_twist, design.pitch,
                                                    RHO, polar_sheet, design.BLADES, design.start, segment_dr, 0.0001)
         a_list.append(a)
@@ -84,6 +85,8 @@ for tsr_value in design.TSR:
         phi_list.append(phi)
         alpha_list.append(alpha)
         r_loc.append(segment_mean / design.R)
+        f_azi_list.append(f_azi / (0.5*RHO*design.U0**2*design.R))
+        f_axi_list.append(f_axi / (0.5*RHO*design.U0**2*design.R))
 
     all_results.append({
         'tsr': tsr_value,
@@ -91,7 +94,9 @@ for tsr_value in design.TSR:
         'a_prime_list': a_prime_list,
         'phi_list': phi_list,
         'alpha_list': alpha_list,
-        'r_loc': r_loc
+        'r_loc': r_loc,
+        'f_azi_list': f_azi_list,
+        'f_axi_list': f_axi_list
     })
 
 blue_color = ['#00CCFF', '#005FFF', '#0000FF']
@@ -120,5 +125,16 @@ ax_phi.set_ylabel(r"$\phi$, $\alpha$ [-]")
 handles, labels = plt.gca().get_legend_handles_labels()
 ax_phi.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
 ax_phi.grid()
-plt.show()
+# plt.show()
 
+fig_force, ax_force = plt.subplots(nrows=1, ncols=1)
+for i, result in enumerate(all_results):
+    ax_force.plot(result['r_loc'], result['f_azi_list'], label=f"TSR: {result['tsr']}, $F_{{tan}}$", color=blue_color[i])
+    ax_force.plot(result['r_loc'], result['f_axi_list'], label=f"TSR: {result['tsr']}, $F_{{norm}}$", color=red_color[i])
+ax_force.set_xlabel("Normalized position of blade (r/R)")
+ax_force.set_ylabel(r"$C_t$, $C_n$ [-]")
+# Rearrange legend
+handles, labels = plt.gca().get_legend_handles_labels()
+ax_force.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
+ax_force.grid()
+plt.show()

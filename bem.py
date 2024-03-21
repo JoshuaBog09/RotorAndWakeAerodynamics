@@ -2,7 +2,7 @@ import numpy as np
 
 def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, segment_twist: float,
                    blade_pitch: float, RHO: float, polar_sheet: np.ndarray, BLADES: int, MU_ROOT: float,
-                   dr: float, tolerance: float) -> tuple[float, float, float, float]:
+                   dr: float, tolerance: float) -> tuple[float, float, float, float, float, float]:
     """
     Main `BEM procedure`, which can be called on a given turbine design. The bem model utelises a singular anuli 
     segment as input for its computational procedure. And should therfore be called for each anuli (segment) 
@@ -65,6 +65,8 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
         The azimuthal induction factor of the segment at convergence : float
         The inflow angle of the segment : float
         The angle of attack of the segment : float
+        The azimuthal force (f_tan) of the segment : float
+        The axial force (f_norm) of the segment : float
 
     Raises
     ------
@@ -113,7 +115,7 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
             raise StopIteration(f"Itreration paramter a or a' out of bounds [0, 1]. \
                                 Value at failure a={a[-1]:.5f}, a'={a_prime[-1]:.5f}")
     
-    return a[-1], a_prime[-1], Phi, alpha
+    return a[-1], a_prime[-1], Phi, alpha, f_azi, f_axi
 
 
 def force_azi_axi(V_p: float, segment_c: float, Phi:float, RHO: float,
@@ -254,7 +256,7 @@ if __name__ == "__main__":
     ax_prandtl.grid()
     # plt.show()
 
-    cts = np.linspace(-4, 4, 1000, endpoint=True)
+    cts = np.linspace(-4, 4, 10000, endpoint=True)
     a = []
     for ct in cts:
         a.append(glauert(ct))
