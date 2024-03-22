@@ -110,12 +110,15 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
         if a_prime[-1] < 0:
             a_prime[-1] = 0.00000001
 
+        if a[-1] > 0.95:
+            a[-1] = 0.95
+
         if abs(a[-1] - a[-2]) <= tolerance and abs(a_prime[-1] - a_prime[-2]) <= tolerance:
             iterating = False
             skew_angle = (0.6 * a[-1] + 1) * yaw_angle
             ct = 4 * a[-1] * (np.cos(yaw_angle) + np.sin(yaw_angle) * np.tan(skew_angle / 2) - a[-1] * (
                         1 / np.cos(skew_angle / 2)) ** 2)
-            cp = ct * (np.cos(yaw_angle) - a)
+            cp = ct * (np.cos(yaw_angle) - a[-1])
 
         if not 0 < a[-1] < 1 or not 0 < a_prime[-1] < 1:
             raise StopIteration(f"Itreration paramter a or a' out of bounds [0, 1]. \

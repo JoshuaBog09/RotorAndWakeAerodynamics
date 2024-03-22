@@ -47,8 +47,16 @@ RHO = 1.225  # [kg/m^3]
 ## Define blade elemenets 
 
 # resolution = 942
-resolution = 100
-r = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R
+resolution = 10
+# r = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R  # Equal spacing
+# r = (np.sin(np.linspace(0, np.pi/2, resolution, endpoint=True)) * (design.end - design.start) + design.start)* design.R
+#          # High density @ tip, low density @ root
+r = (((np.cos(np.linspace(np.pi/2, np.pi, resolution, endpoint=True)) + design.end) * (design.end - design.start)) + design.start)* design.R
+#          # High density @ root, low density @ tip
+# r = ((((np.cos(np.linspace(0, np.pi, resolution, endpoint=True)) + design.end) / 2 ) * (design.end - design.start)) + design.start)* design.R
+#          # High @ both endpoints
+# r = (((((np.linspace(-1, 1, resolution, endpoint=True)**3) + design.end) / 2) * (design.end - design.start)) + design.start)* design.R
+         # High @ central points
 
 # Loop over each TSR value
 all_results = []
@@ -123,6 +131,7 @@ for tsr_value in design.TSR:
         'f_axi': np.array(f_axi_list),
         'cl': np.array(cl_list),
         'cd': np.array(cd_list),
+        'CP': np.array(CP_list),
     })
 
 blue_color = ['#00CCFF', '#005FFF', '#0000FF']
@@ -183,19 +192,41 @@ ax_torque.grid()
 ax_torque.set_title("Total Torque")
 plt.tight_layout()
 
-fig_lift_drag, ax_lift_drag = plt.subplots(nrows=1, ncols=1)
+fig_lift, ax_lift = plt.subplots(nrows=1, ncols=1)
+fig_drag, ax_drag = plt.subplots(nrows=1, ncols=1)
 n_dim_force = 0.5 * RHO * design.U0 ** 2 * (2*np.pi*np.array(result['r/R_loc'])*design.R)*segment_dr
 for i, result in enumerate(all_results):
-    ax_lift_drag.plot(result['r/R_loc'], result['cl'], label=f"TSR: {result['tsr']}, $C_{{l}}$",
+    ax_lift.plot(result['r/R_loc'], result['cl'], label=f"TSR: {result['tsr']}, $C_{{l}}$",
                   color=blue_color[i])
-    ax_lift_drag.plot(result['r/R_loc'], result['cd'], label=f"TSR: {result['tsr']}, $C_{{d}}$",
+    ax_drag.plot(result['r/R_loc'], result['cd'], label=f"TSR: {result['tsr']}, $C_{{d}}$",
                   color=red_color[i])
-ax_lift_drag.set_xlabel("Normalized position of blade (r/R)")
-ax_lift_drag.set_ylabel(r"$C_l$, $C_d$ [-]")
+ax_lift.set_xlabel("Normalized position of blade (r/R)")
+ax_lift.set_ylabel(r"$C_l$ [-]")
 # Rearrange legend
 handles, labels = plt.gca().get_legend_handles_labels()
-ax_lift_drag.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
-ax_lift_drag.grid()
+ax_lift.legend()
+ax_lift.set_ylim(0, 1.3)
+ax_lift.grid()
+
+ax_drag.set_xlabel("Normalized position of blade (r/R)")
+ax_drag.set_ylabel(r"$C_d$ [-]")
+# Rearrange legend
+handles, labels = plt.gca().get_legend_handles_labels()
+ax_drag.legend()
+ax_drag.set_ylim(0, 0.3)
+ax_drag.grid()
+
+fig_CP, ax_CP = plt.subplots(nrows=1, ncols=1)
+for i, result in enumerate(all_results):
+    ax_CP.plot(result['r/R_loc'], result['CP'], label=f"TSR: {result['tsr']}, $C_{{P}}$",
+                  color=blue_color[i])
+ax_CP.set_xlabel("Normalized position of blade (r/R)")
+ax_CP.set_ylabel(r"$C_P$ [-]")
+# Rearrange legend
+handles, labels = plt.gca().get_legend_handles_labels()
+ax_CP.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
+ax_CP.set_ylim(0, 0.6)
+ax_CP.grid()
 
 # Data over alpha plots
 
