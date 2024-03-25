@@ -7,6 +7,7 @@ import statistics
 
 import design
 import bem
+import stagnation
 
 file_path = 'polar_DU95W180.xlsx'
 
@@ -47,11 +48,11 @@ RHO = 1.225  # [kg/m^3]
 ## Define blade elemenets 
 
 # resolution = 942
-resolution = 10
-# r = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R  # Equal spacing
+resolution = 100
+r = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R  # Equal spacing
 # r = (np.sin(np.linspace(0, np.pi/2, resolution, endpoint=True)) * (design.end - design.start) + design.start)* design.R
 #          # High density @ tip, low density @ root
-r = (((np.cos(np.linspace(np.pi/2, np.pi, resolution, endpoint=True)) + design.end) * (design.end - design.start)) + design.start)* design.R
+# r = (((np.cos(np.linspace(np.pi/2, np.pi, resolution, endpoint=True)) + design.end) * (design.end - design.start)) + design.start)* design.R
 #          # High density @ root, low density @ tip
 # r = ((((np.cos(np.linspace(0, np.pi, resolution, endpoint=True)) + design.end) / 2 ) * (design.end - design.start)) + design.start)* design.R
 #          # High @ both endpoints
@@ -77,6 +78,9 @@ for tsr_value in design.TSR:
     cd_list = []
     r_loc_list = []
     f_azi_list, f_axi_list = [], []
+    r_inner_list = []
+    r_outer_list = []
+
     for i in np.arange(0, len(r) - 1):
         segment += 1
         # print(f"Segment number = {segment}")
@@ -108,7 +112,11 @@ for tsr_value in design.TSR:
         cd_list.append(output['cd'])
         CT_list.append(output['CT'])
         CP_list.append(output['CP'])
+        
+        r_inner_list.append(segment_start)
+        r_outer_list.append(segment_end)
 
+    stagnation.compute_stagnation_pressure(design.U0, a_list, r_inner_list, r_outer_list)
 
     # Calculating the total thrust, power and torque
     total_thrust = np.sum(design.BLADES * np.array(f_axi_list) * segment_dr)
