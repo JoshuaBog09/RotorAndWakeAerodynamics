@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 import pandas as pd
 
 import math
@@ -8,6 +9,12 @@ import statistics
 import design
 import bem
 import stagnation
+import seaborn as sns
+
+sns.set_theme(rc={'grid.color': 'white'})
+matplotlib.rcParams.update({'font.size': 15, 'figure.figsize': (6, 5), 'figure.dpi': 150})
+# matplotlib.rcParams['figure.subplot.top'] = 0.95
+# matplotlib.rcParams['figure.subplot.right'] = 0.98
 
 file_path = 'polar_DU95W180.xlsx'
 
@@ -24,6 +31,7 @@ polar_sheet = np.array([alfa_array, cl_array, cd_array, cm_array])
 
 # Constant
 RHO = 1.225  # [kg/m^3]
+yaw_angle = design.YAW[1]
 
 # Data over alpha plots
 
@@ -100,7 +108,7 @@ for tsr_value in design.TSR:
                                  segment_twist, design.pitch,
                                  RHO, polar_sheet, design.BLADES, design.start,
                                  segment_dr, 0.0001,
-                                 np.radians(design.YAW[0]))
+                                 np.radians(yaw_angle))
         a_list.append(output['a_new'])
         a_prime_list.append(output['a_prime_new'])
         phi_list.append(output['Phi'])
@@ -116,7 +124,7 @@ for tsr_value in design.TSR:
         r_inner_list.append(segment_start)
         r_outer_list.append(segment_end)
 
-    stagnation.compute_stagstat_pressure(design.U0, a_list, r_inner_list, r_outer_list)
+    fig_stat, fig_stag = stagnation.compute_stagstat_pressure(design.U0, a_list, r_inner_list, r_outer_list)
 
     # Calculating the total thrust, power and torque
     total_thrust = np.sum(design.BLADES * np.array(f_axi_list) * segment_dr)
@@ -149,14 +157,15 @@ fig_induction, ax_induction = plt.subplots(nrows=1, ncols=1)
 for i, result in enumerate(all_results):
     ax_induction.plot(result['r/R_loc'], result['a'], label=f"TSR: {result['tsr']}, a", color=blue_color[i])
     ax_induction.plot(result['r/R_loc'], result['a_prime'], label=f"TSR: {result['tsr']}, a'", color=red_color[i])
-ax_induction.set_xlabel("Normalized position of blade (r/R)")
+ax_induction.set_xlabel("r/R")
 ax_induction.set_ylabel("Induction factor [-]")
 # Rearrange legend
 handles, labels = plt.gca().get_legend_handles_labels()
 ax_induction.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
 ax_induction.set_title(f'Induction factor for TSR: 6,8,10')
 ax_induction.set_ylim([0, 1])
-ax_induction.grid()
+# ax_induction.grid()
+# fig_induction.tight_layout()
 # plt.show()
 
 fig_phi, ax_phi = plt.subplots(nrows=1, ncols=1)
@@ -164,41 +173,44 @@ for i, result in enumerate(all_results):
     ax_phi.plot(result['r/R_loc'], np.degrees(result['phi']), label=f"TSR: {result['tsr']}, $\\phi$", color=blue_color[i])
     ax_phi.plot(result['r/R_loc'], np.degrees(result['alpha']), label=f"TSR: {result['tsr']}, $\\alpha$",
                 color=red_color[i])
-ax_phi.set_xlabel("Normalized position of blade (r/R)")
+ax_phi.set_xlabel("r/R")
 ax_phi.set_ylabel(r"$\phi$, $\alpha$ [-]")
 # Rearrange legend
 handles, labels = plt.gca().get_legend_handles_labels()
 ax_phi.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
-ax_phi.grid()
+# ax_phi.grid()
+# fig_phi.tight_layout()
 # plt.show()
 
 fig_force, ax_force = plt.subplots(nrows=1, ncols=1)
 n_dim_force = 0.5 * RHO * design.U0 ** 2 * (2*np.pi*np.array(result['r/R_loc'])*design.R)*segment_dr
 for i, result in enumerate(all_results):
-    ax_force.plot(result['r/R_loc'], result['f_azi'] / n_dim_force, label=f"TSR: {result['tsr']}, $F_{{tan}}$",
+    ax_force.plot(result['r/R_loc'], result['f_azi'] / n_dim_force, label=f"TSR: {result['tsr']}, $C_{{t}}$",
                   color=blue_color[i])
-    ax_force.plot(result['r/R_loc'], result['f_axi'] / n_dim_force, label=f"TSR: {result['tsr']}, $F_{{norm}}$",
+    ax_force.plot(result['r/R_loc'], result['f_axi'] / n_dim_force, label=f"TSR: {result['tsr']}, $C_{{n}}$",
                   color=red_color[i])
-ax_force.set_xlabel("Normalized position of blade (r/R)")
+ax_force.set_xlabel("r/R")
 ax_force.set_ylabel(r"$C_t$, $C_n$ [-]")
 # Rearrange legend
 handles, labels = plt.gca().get_legend_handles_labels()
 ax_force.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
-ax_force.grid()
+# ax_force.grid()
+# fig_force.tight_layout()
 # plt.show()
 
-fig_tot_force, (ax_thrust, ax_torque) = plt.subplots(nrows=1, ncols=2)
+fig_thrust, ax_thrust = plt.subplots(nrows=1, ncols=1)
+fig_torque, ax_torque = plt.subplots(nrows=1, ncols=1)
 ax_thrust.scatter(design.TSR, tot_thrust_list, label=r"$T_{total}$", color='blue')
-ax_thrust.set_xlabel("Tip speed ratio (TSR)")
+ax_thrust.set_xlabel("TSR [-])")
 ax_thrust.set_ylabel(r"$T_{tot}$ [N]")
-ax_thrust.grid()
-ax_thrust.set_title("Total Thrust")
+# ax_thrust.grid()
+# ax_thrust.set_title("Total Thrust")
 ax_torque.scatter(design.TSR, tot_torque_list, label=r"$Q_{total}$", color='red')
-ax_torque.set_xlabel("Tip speed ratio (TSR)")
+ax_torque.set_xlabel("TSR [-]")
 ax_torque.set_ylabel(r"$Q_{tot}$ [Nm]")
-ax_torque.grid()
-ax_torque.set_title("Total Torque")
-plt.tight_layout()
+# ax_torque.grid()
+# ax_torque.set_title("Total Torque")
+# fig_tot_force.tight_layout()
 
 fig_lift, ax_lift = plt.subplots(nrows=1, ncols=1)
 fig_drag, ax_drag = plt.subplots(nrows=1, ncols=1)
@@ -208,51 +220,73 @@ for i, result in enumerate(all_results):
                   color=blue_color[i])
     ax_drag.plot(result['r/R_loc'], result['cd'], label=f"TSR: {result['tsr']}, $C_{{d}}$",
                   color=red_color[i])
-ax_lift.set_xlabel("Normalized position of blade (r/R)")
+ax_lift.set_xlabel("r/R [-]")
 ax_lift.set_ylabel(r"$C_l$ [-]")
 # Rearrange legend
 handles, labels = plt.gca().get_legend_handles_labels()
 ax_lift.legend()
 ax_lift.set_ylim(0, 1.3)
-ax_lift.grid()
+# ax_lift.grid()
+# fig_lift.tight_layout()
 
-ax_drag.set_xlabel("Normalized position of blade (r/R)")
+ax_drag.set_xlabel("r/R [-]")
 ax_drag.set_ylabel(r"$C_d$ [-]")
 # Rearrange legend
 handles, labels = plt.gca().get_legend_handles_labels()
 ax_drag.legend()
 ax_drag.set_ylim(0, 0.3)
-ax_drag.grid()
+# ax_drag.grid()
+# fig_drag.tight_layout()
 
 fig_CP, ax_CP = plt.subplots(nrows=1, ncols=1)
 for i, result in enumerate(all_results):
     ax_CP.plot(result['r/R_loc'], result['CP'], label=f"TSR: {result['tsr']}, $C_{{P}}$",
                   color=blue_color[i])
-ax_CP.set_xlabel("Normalized position of blade (r/R)")
+ax_CP.set_xlabel("r/R [-]")
 ax_CP.set_ylabel(r"$C_P$ [-]")
 # Rearrange legend
 handles, labels = plt.gca().get_legend_handles_labels()
 ax_CP.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
 ax_CP.set_ylim(0, 0.6)
-ax_CP.grid()
+# ax_CP.grid()
+# fig_CP.tight_layout()
 
 # Data over alpha plots
 
 fig_lift_drag_polar, ax_lift_drag_polar = plt.subplots(nrows=1, ncols=1)
 ax_lift_drag_polar.plot(alfa_array, cl_array, label="$C_l$")
 ax_lift_drag_polar.plot(alfa_array, cd_array, label="$C_d$")
-ax_lift_drag_polar.set_xlim(-30, 30)
-ax_lift_drag_polar.set_xlabel("Angle of attack [deg]")
-ax_lift_drag_polar.set_ylabel("Coefficient [-]")
-ax_lift_drag_polar.legend()
-ax_lift_drag_polar.grid()
+# ax_lift_drag_polar.set_xlim(-30, 30)
+ax_lift_drag_polar.set_xlabel(r'$\alpha$ [deg]')
+ax_lift_drag_polar.set_ylabel('$C_{l}$, $C_{d}$ [-]')
+# ax_lift_drag_polar.legend()
+# ax_lift_drag_polar.grid()
+# fig_lift_drag_polar.tight_layout()
 
 fig_lift_drag_bucket, ax_lift_drag_bucket = plt.subplots(nrows=1, ncols=1)
-ax_lift_drag_bucket.plot(cd_array, cl_array, label="$C_D$ vs. $C_L$")
-ax_lift_drag_bucket.set_xlim(0, 0.1)
+ax_lift_drag_bucket.plot(cd_array, cl_array)
+ax_lift_drag_bucket.set_xlim(0, 0.15)
 ax_lift_drag_bucket.set_xlabel(r"$C_d$ [-]")
 ax_lift_drag_bucket.set_ylabel(r"$C_l$ [-]")
-ax_lift_drag_bucket.legend()
-ax_lift_drag_bucket.grid()
+# ax_lift_drag_bucket.legend()
+# ax_lift_drag_bucket.grid()
+# fig_lift_drag_bucket.tight_layout()
 
-plt.show()
+path = r'C:\Users\roelv\Documents\School\TU_Delft\MSC_1\Physics\AE4135_Rotor_Wake_Aerodynamics\RWA_figures'
+fig_CP.savefig(rf'{path}\CP_rR_yaw={yaw_angle}.pdf')
+fig_induction.savefig(rf'{path}\a_rR_yaw={yaw_angle}.pdf')
+fig_phi.savefig(rf'{path}\phi_alpha_rR_yaw={yaw_angle}.pdf')
+fig_drag.savefig(rf'{path}\Cd_rR_yaw={yaw_angle}.pdf')
+fig_lift.savefig(rf'{path}\Cl_rR_yaw={yaw_angle}.pdf')
+fig_lift_drag_polar.savefig(rf'{path}\Cl_Cd_polar.pdf')
+fig_lift_drag_bucket.savefig(rf'{path}\Cl_Cd_bucket.pdf')
+fig_force.savefig(rf'{path}\Ct_Cn_rR_yaw={yaw_angle}.pdf')
+fig_thrust.savefig(rf'{path}\Trust_TSR_yaw={yaw_angle}.pdf')
+fig_torque.savefig(rf'{path}\Torque_rR_yaw={yaw_angle}.pdf')
+fig_stat.savefig(rf'{path}\p_stat_distr_yaw={yaw_angle}.pdf')
+fig_stag.savefig(rf'{path}\p_stag_distr_yaw={yaw_angle}.pdf')
+
+
+plt.close('all')
+
+# plt.show()
