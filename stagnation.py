@@ -20,28 +20,44 @@ def compute_stagnation_pressure(U_inf: float, a: list[float], r_inner: list[floa
     U_rotor     = U_inf * (1 - a)
     
     # Evaluate array of annuli at 3 positions based on induction factor based on continuity
+    A_upwind    = np.pi * (r_outer**2 - r_inner**2) * (1 - a)
     A_downwind  = np.pi * (r_outer**2 - r_inner**2) * (1 - a) / (1 - 2*a)
     A_rotor     = np.pi * (r_outer**2 - r_inner**2)
-    A_upwind    = np.pi * (r_outer**2 - r_inner**2) * (1 - a)
 
     # Compute stagnation pressures at 4 locations -->> Upwind, downwind, before and after rotor
-    pstag_upwind = np.repeat(p_inf, len(a))
-    pstag_rotor1 = p_inf + 0.5 * rho_inf * U_upwind**2 - 0.5 * rho_inf * U_rotor ** 2   # bernoulli
+    pstat_upwind = np.repeat(p_inf, len(a))
+    pstat_rotor1 = p_inf + 0.5 * rho_inf * U_upwind**2 - 0.5 * rho_inf * U_rotor ** 2   # bernoulli
 
     F_rw = - (rho_inf * A_upwind * U_upwind**2 - rho_inf * A_downwind * U_downwind**2)  # Momentum
-    pstag_rotor2 = pstag_rotor1 + (F_rw / A_rotor)
+    pstat_rotor2 = pstat_rotor1 + (F_rw / A_rotor)
 
-    pstag_downwind = pstag_rotor2 + 0.5 * rho_inf * U_rotor**2 - 0.5 * rho_inf * U_downwind ** 2    # bernoulli
+    pstat_downwind = pstat_rotor2 + 0.5 * rho_inf * U_rotor**2 - 0.5 * rho_inf * U_downwind ** 2    # bernoulli
 
+    # Convert all to stagnation pressure
+    pstag_upwind    = pstat_upwind + 0.5*rho_inf*U_upwind**2
+    pstag_downwind  = pstat_downwind + 0.5*rho_inf*U_downwind**2
+    pstag_rotor1    = pstat_rotor1 + 0.5*rho_inf*U_rotor**2
+    pstag_rotor2    = pstat_rotor2 + 0.5*rho_inf*U_rotor**2
+    
     ## Plotting
     colors = ['#d7191c','#fdae61','#abdda4','#2b83ba']
+
+    plt.plot((r_inner + 0.5 * (r_outer - r_inner)) / design.R, pstat_upwind, label="Upwind", color=colors[0], linestyle="dotted", marker='o',markevery=13)
+    plt.plot((r_inner + 0.5 * (r_outer - r_inner)) / design.R, pstat_rotor1, label="Before rotor", color=colors[1], linestyle="solid")
+    plt.plot((r_inner + 0.5 * (r_outer - r_inner)) / design.R, pstat_rotor2, label="After rotor", color=colors[2], linestyle="solid")
+    plt.plot((r_inner + 0.5 * (r_outer - r_inner)) / design.R, pstat_downwind, label="Downwind", color=colors[3], linestyle="dotted", marker='d',markevery=11)
+    plt.xlabel("Normalized spanwise position [-]")
+    plt.ylabel("Static pressure [Pa]")
+    plt.legend()
+    plt.grid()
+    plt.show()
 
     plt.plot((r_inner + 0.5 * (r_outer - r_inner)) / design.R, pstag_upwind, label="Upwind", color=colors[0], linestyle="dotted", marker='o',markevery=13)
     plt.plot((r_inner + 0.5 * (r_outer - r_inner)) / design.R, pstag_rotor1, label="Before rotor", color=colors[1], linestyle="solid")
     plt.plot((r_inner + 0.5 * (r_outer - r_inner)) / design.R, pstag_rotor2, label="After rotor", color=colors[2], linestyle="solid")
     plt.plot((r_inner + 0.5 * (r_outer - r_inner)) / design.R, pstag_downwind, label="Downwind", color=colors[3], linestyle="dotted", marker='d',markevery=11)
     plt.xlabel("Normalized spanwise position [-]")
-    plt.ylabel("Stagnation (static) pressure [Pa]")
+    plt.ylabel("Stagnation pressure [Pa]")
     plt.legend()
     plt.grid()
     plt.show()
