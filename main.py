@@ -116,7 +116,7 @@ for tsr_value in design.TSR:
         r_inner_list.append(segment_start)
         r_outer_list.append(segment_end)
 
-    stagnation.compute_stagnation_pressure(design.U0, a_list, r_inner_list, r_outer_list)
+    stagnation.compute_stagstat_pressure(design.U0, a_list, r_inner_list, r_outer_list)
 
     # Calculating the total thrust, power and torque
     total_thrust = np.sum(design.BLADES * np.array(f_axi_list) * segment_dr)
