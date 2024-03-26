@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 import pandas as pd
+import scipy.interpolate as intp
 
 import math
 import statistics
@@ -204,14 +205,21 @@ ax_force.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
 
 fig_thrust, ax_thrust = plt.subplots(nrows=1, ncols=1)
 fig_torque, ax_torque = plt.subplots(nrows=1, ncols=1)
-ax_thrust.scatter(design.TSR, C_T_list, label=r"$C_T$", color='blue')
-ax_thrust.scatter(design.TSR, C_P_list, label=r"$C_P$", color='green')
+interp_resolution = np.linspace(design.TSR[0], design.TSR[-1], 1000)
+ax_thrust.scatter(design.TSR, C_T_list, label=r"$C_T$", color='blue', s=15)
+thrust_inter = intp.CubicSpline(np.array(design.TSR), np.array(C_T_list))
+ax_thrust.plot(interp_resolution, thrust_inter(interp_resolution), color='blue')
+ax_thrust.scatter(design.TSR, C_P_list, label=r"$C_P$", color='green', s=15)
+power_inter = intp.CubicSpline(np.array(design.TSR), np.array(C_P_list))
+ax_thrust.plot(interp_resolution, power_inter(interp_resolution), color='green')
 ax_thrust.set_xlabel("TSR [-])")
 ax_thrust.set_ylabel(r"$C_T$, $C_P$ [-]")
 ax_thrust.legend()
 # ax_thrust.grid()
 # ax_thrust.set_title("Total Thrust")
-ax_torque.scatter(design.TSR, C_Q_list, label=r"$C_Q$", color='red')
+ax_torque.scatter(design.TSR, C_Q_list, label=r"$C_Q$", color='red', s=15)
+torque_inter = intp.CubicSpline(np.array(design.TSR), np.array(C_Q_list))
+ax_torque.plot(interp_resolution, torque_inter(interp_resolution), color='red')
 ax_torque.set_xlabel("TSR [-]")
 ax_torque.set_ylabel(r"$C_Q$ [-]")
 # ax_torque.grid()

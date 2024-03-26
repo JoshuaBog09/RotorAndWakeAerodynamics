@@ -1,3 +1,4 @@
+import numpy as np
 Airfoil = "DU 95-W-180"
 
 R = 50          # Blade length [m]
@@ -12,6 +13,7 @@ pitch = - 2     # [deg]
 
 U0 = 10             # [m/s]
 TSR = [6, 8, 10]
+# TSR = np.arange(1, 12, 1)
 YAW = [0, 15, 30]   # Yaw expressed in degress 
 
 if __name__ == "__main__":
