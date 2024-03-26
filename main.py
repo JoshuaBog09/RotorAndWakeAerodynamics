@@ -130,7 +130,7 @@ for tsr_value in design.TSR:
     # Calculating the total thrust, power and torque
     total_thrust = np.sum(design.BLADES * np.array(f_axi_list) * segment_dr)
     total_power = np.sum(
-        segment_dr * design.BLADES * np.array(f_azi_list) * np.array(r_loc_list) * tsr_value / design.U0)
+        segment_dr * design.BLADES * np.array(f_azi_list) * np.array(r_loc_list) * tsr_value * design.U0)
     total_torque = np.sum(
         segment_dr * design.BLADES * np.array(f_azi_list) * (np.array(r_loc_list) * design.R))
     C_T = total_thrust / (0.5 * RHO * design.U0 ** 2 * np.pi * design.R ** 2)
@@ -153,7 +153,7 @@ for tsr_value in design.TSR:
         'cd': np.array(cd_list),
         'CP': np.array(CP_list),
     })
-
+    print(0.8*np.average(np.array(CP_list)))
 blue_color = ['#00CCFF', '#005FFF', '#0000FF']
 red_color = ['#FFCCCC', '#FF5F5F', '#FF0000']
 
