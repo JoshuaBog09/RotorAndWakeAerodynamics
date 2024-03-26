@@ -69,7 +69,8 @@ r = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R 
 
 # Loop over each TSR value
 all_results = []
-tot_thrust_list, tot_torque_list = [], []
+tot_thrust_list, tot_power_list, tot_torque_list = [], [], []
+C_T_list, C_P_list, C_Q_list = [], [], []
 for tsr_value in design.TSR:
     print(f"Calculations for TSR: {tsr_value}")
 
@@ -131,10 +132,13 @@ for tsr_value in design.TSR:
     total_power = np.sum(
         segment_dr * design.BLADES * np.array(f_azi_list) * np.array(r_loc_list) * tsr_value / design.U0)
     total_torque = np.sum(
-        segment_dr * design.BLADES * np.array(f_azi_list) * (np.array(r_loc_list) * design.R) * segment_dr)
-    # C_T = total_thrust / (0.5 * RHO * design.U0 ** 2 * np.pi * design.R ** 2)
-    # C_P = total_power / (0.5 * RHO * design.U0 ** 3 * np.pi * design.R ** 2)
-    tot_thrust_list.append(total_thrust), tot_torque_list.append(total_torque)
+        segment_dr * design.BLADES * np.array(f_azi_list) * (np.array(r_loc_list) * design.R))
+    C_T = total_thrust / (0.5 * RHO * design.U0 ** 2 * np.pi * design.R ** 2)
+    C_P = total_power / (0.5 * RHO * design.U0 ** 3 * np.pi * design.R ** 2)
+    C_Q = total_torque / (0.5 * RHO * design.U0 ** 2 * np.pi * design.R ** 3)
+    tot_thrust_list.append(total_thrust), tot_power_list.append(total_torque), tot_torque_list.append(total_torque)
+    C_T_list.append(C_T), C_P_list.append(C_P), C_Q_list.append(C_Q)
+    print(C_P)
 
     all_results.append({
         'tsr': tsr_value,
@@ -200,14 +204,16 @@ ax_force.legend(handles[::2] + handles[1::2], labels[::2] + labels[1::2])
 
 fig_thrust, ax_thrust = plt.subplots(nrows=1, ncols=1)
 fig_torque, ax_torque = plt.subplots(nrows=1, ncols=1)
-ax_thrust.scatter(design.TSR, tot_thrust_list, label=r"$T_{total}$", color='blue')
+ax_thrust.scatter(design.TSR, C_T_list, label=r"$C_T$", color='blue')
+ax_thrust.scatter(design.TSR, C_P_list, label=r"$C_P$", color='green')
 ax_thrust.set_xlabel("TSR [-])")
-ax_thrust.set_ylabel(r"$T_{tot}$ [N]")
+ax_thrust.set_ylabel(r"$C_T$, $C_P$ [-]")
+ax_thrust.legend()
 # ax_thrust.grid()
 # ax_thrust.set_title("Total Thrust")
-ax_torque.scatter(design.TSR, tot_torque_list, label=r"$Q_{total}$", color='red')
+ax_torque.scatter(design.TSR, C_Q_list, label=r"$C_Q$", color='red')
 ax_torque.set_xlabel("TSR [-]")
-ax_torque.set_ylabel(r"$Q_{tot}$ [Nm]")
+ax_torque.set_ylabel(r"$C_Q$ [-]")
 # ax_torque.grid()
 # ax_torque.set_title("Total Torque")
 # fig_tot_force.tight_layout()
@@ -272,21 +278,21 @@ ax_lift_drag_bucket.set_ylabel(r"$C_l$ [-]")
 # ax_lift_drag_bucket.grid()
 # fig_lift_drag_bucket.tight_layout()
 
-path = r'C:\Users\roelv\Documents\School\TU_Delft\MSC_1\Physics\AE4135_Rotor_Wake_Aerodynamics\RWA_figures'
-fig_CP.savefig(rf'{path}\CP_rR_yaw={yaw_angle}.pdf')
-fig_induction.savefig(rf'{path}\a_rR_yaw={yaw_angle}.pdf')
-fig_phi.savefig(rf'{path}\phi_alpha_rR_yaw={yaw_angle}.pdf')
-fig_drag.savefig(rf'{path}\Cd_rR_yaw={yaw_angle}.pdf')
-fig_lift.savefig(rf'{path}\Cl_rR_yaw={yaw_angle}.pdf')
-fig_lift_drag_polar.savefig(rf'{path}\Cl_Cd_polar.pdf')
-fig_lift_drag_bucket.savefig(rf'{path}\Cl_Cd_bucket.pdf')
-fig_force.savefig(rf'{path}\Ct_Cn_rR_yaw={yaw_angle}.pdf')
-fig_thrust.savefig(rf'{path}\Trust_TSR_yaw={yaw_angle}.pdf')
-fig_torque.savefig(rf'{path}\Torque_rR_yaw={yaw_angle}.pdf')
-fig_stat.savefig(rf'{path}\p_stat_distr_yaw={yaw_angle}.pdf')
-fig_stag.savefig(rf'{path}\p_stag_distr_yaw={yaw_angle}.pdf')
+# path = r'C:\Users\roelv\Documents\School\TU_Delft\MSC_1\Physics\AE4135_Rotor_Wake_Aerodynamics\RWA_figures'
+# fig_CP.savefig(rf'{path}\CP_rR_yaw={yaw_angle}.pdf')
+# fig_induction.savefig(rf'{path}\a_rR_yaw={yaw_angle}.pdf')
+# fig_phi.savefig(rf'{path}\phi_alpha_rR_yaw={yaw_angle}.pdf')
+# fig_drag.savefig(rf'{path}\Cd_rR_yaw={yaw_angle}.pdf')
+# fig_lift.savefig(rf'{path}\Cl_rR_yaw={yaw_angle}.pdf')
+# fig_lift_drag_polar.savefig(rf'{path}\Cl_Cd_polar.pdf')
+# fig_lift_drag_bucket.savefig(rf'{path}\Cl_Cd_bucket.pdf')
+# fig_force.savefig(rf'{path}\Ct_Cn_rR_yaw={yaw_angle}.pdf')
+# fig_thrust.savefig(rf'{path}\Trust_TSR_yaw={yaw_angle}.pdf')
+# fig_torque.savefig(rf'{path}\Torque_rR_yaw={yaw_angle}.pdf')
+# fig_stat.savefig(rf'{path}\p_stat_distr_yaw={yaw_angle}.pdf')
+# fig_stag.savefig(rf'{path}\p_stag_distr_yaw={yaw_angle}.pdf')
 
 
-plt.close('all')
+plt.show()
 
 # plt.show()
