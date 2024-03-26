@@ -52,7 +52,8 @@ r = np.linspace(design.start, design.end, resolution, endpoint=True) * design.R
 
 # Loop over each TSR value
 all_results = []
-tot_thrust_list, tot_torque_list = [], []
+tot_thrust_list, tot_power_list, tot_torque_list,  = [], [], []
+C_T_list, C_P_list, C_Q_list = [], [], []
 for tsr_value in design.TSR:
     print(f"Calculations for TSR: {tsr_value}")
 
@@ -81,7 +82,7 @@ for tsr_value in design.TSR:
         a, a_prime, phi, alpha, f_azi, f_axi = bem.bem_procedure(design.U0, segment_chord, segment_mean, design.R, tsr_value,
                                                    segment_twist, design.pitch,
                                                    RHO, polar_sheet, design.BLADES, design.start, segment_dr, 0.0001,
-                                                   np.radians(design.YAW[2]))
+                                                   np.radians(design.YAW[0]))
         a_list.append(a)
         a_prime_list.append(a_prime)
         phi_list.append(phi)
@@ -93,10 +94,12 @@ for tsr_value in design.TSR:
     # Calculating the total thrust, power and torque
     total_thrust = np.sum(design.BLADES * np.array(f_axi_list) * segment_dr)
     total_power = np.sum(segment_dr * design.BLADES * np.array(f_azi_list) * np.array(r_loc_list) * tsr_value/design.U0)
-    total_torque = np.sum(segment_dr * design.BLADES * np.array(f_azi_list) * (np.array(r_loc_list) * design.R) * segment_dr)
-    # C_T = total_thrust / (0.5 * RHO * design.U0 ** 2 * np.pi * design.R ** 2)
-    # C_P = total_power / (0.5 * RHO * design.U0 ** 3 * np.pi * design.R ** 2)
-    tot_thrust_list.append(total_thrust), tot_torque_list.append(total_torque)
+    total_torque = np.sum(segment_dr * design.BLADES * np.array(f_azi_list) * (np.array(r_loc_list) * design.R))
+    C_T = total_thrust / (0.5 * RHO * design.U0 ** 2 * np.pi * design.R ** 2)
+    C_P = total_power / (0.5 * RHO * design.U0 ** 3 * np.pi * design.R ** 2)
+    C_Q = total_torque / (0.5 * RHO * design.U0 ** 2 * np.pi *design.R ** 3)
+    tot_thrust_list.append(total_thrust), tot_power_list.append(total_power), tot_torque_list.append(total_torque)
+    C_T_list.append(C_T), C_P_list.append(C_P), C_Q_list.append(C_Q)
 
     all_results.append({
         'tsr': tsr_value,
@@ -162,5 +165,18 @@ ax_torque.set_xlabel("Tip speed ratio (TSR)")
 ax_torque.set_ylabel(r"$Q_{tot}$ [Nm]")
 ax_torque.grid()
 ax_torque.set_title("Total Torque")
+plt.tight_layout()
+
+fig_C_force, (ax_C_thrust, ax_C_torque) = plt.subplots(nrows=1, ncols=2)
+ax_C_thrust.scatter(design.TSR, C_T_list, label=r"$T_{total}$", color='blue')
+ax_C_thrust.set_xlabel("Tip speed ratio (TSR)")
+ax_C_thrust.set_ylabel(r"$T_{tot}$ [N]")
+ax_C_thrust.grid()
+ax_C_thrust.set_title("Total Thrust")
+ax_C_torque.scatter(design.TSR, C_Q_list, label=r"$Q_{total}$", color='red')
+ax_C_torque.set_xlabel("Tip speed ratio (TSR)")
+ax_C_torque.set_ylabel(r"$Q_{tot}$ [Nm]")
+ax_C_torque.grid()
+ax_C_torque.set_title("Total Torque")
 plt.tight_layout()
 plt.show()
