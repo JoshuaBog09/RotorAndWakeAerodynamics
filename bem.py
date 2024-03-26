@@ -110,14 +110,34 @@ def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, s
         if a_prime[-1] < 0:
             a_prime[-1] = 0.00000001
 
+        if a[-1] > 0.95:
+            a[-1] = 0.95
+
         if abs(a[-1] - a[-2]) <= tolerance and abs(a_prime[-1] - a_prime[-2]) <= tolerance:
             iterating = False
+            skew_angle = (0.6 * a[-1] + 1) * yaw_angle
+            ct = 4 * a[-1] * (np.cos(yaw_angle) + np.sin(yaw_angle) * np.tan(skew_angle / 2) - a[-1] * (
+                        1 / np.cos(skew_angle / 2)) ** 2)
+            cp = ct * (np.cos(yaw_angle) - a[-1])
 
         if not 0 < a[-1] < 1 or not 0 < a_prime[-1] < 1:
             raise StopIteration(f"Itreration paramter a or a' out of bounds [0, 1]. \
                                 Value at failure a={a[-1]:.5f}, a'={a_prime[-1]:.5f}")
-    
-    return a[-1], a_prime[-1], Phi, alpha, f_azi, f_axi
+
+    output = {
+        "a_new": a[-1],
+        "a_prime_new": a_prime[-1],
+        "Phi": Phi,
+        "alpha": alpha,
+        "f_azi": f_azi,
+        "f_axi": f_axi,
+        "CT": ct,
+        "CP": cp,
+        "cl": cl,
+        "cd": cd
+    }
+    return output
+    # return a[-1], a_prime[-1], Phi, alpha, f_azi, f_axi, ct, cp
 
 
 def force_azi_axi(V_p: float, segment_c: float, Phi:float, RHO: float,
@@ -133,7 +153,6 @@ def induction(f_azi: float, f_axi: float, BLADES: int, U0: float, RHO: float, R:
               tsr: float, MU_ROOT: float, a: float, yaw_angle: float) -> tuple[float, float]:
 
     annuli_area = 2 * np.pi * r * dr
-    skew_angle = (0.6 * a +1) * yaw_angle
     # ct = 4 * a * (np.cos(yaw_angle) + np.sin(yaw_angle) * np.tan(skew_angle / 2) - a * 1 / (np.cos(skew_angle / 2)) ** 2)
     ct = f_axi * BLADES * dr / (0.5 * RHO * U0 ** 2 * annuli_area)
     # if yaw_angle !=0:
@@ -142,7 +161,11 @@ def induction(f_azi: float, f_axi: float, BLADES: int, U0: float, RHO: float, R:
     #     ct = f_axi * BLADES * dr / (0.5 * RHO * U0 ** 2 * annuli_area)
 
     # Review order of corrections
-    a = glauert(ct)
+    if yaw_angle != 0:
+        a = 0.5 * (1 - np.sqrt(1 - ct))
+
+    else:
+        a = glauert(ct)
     correction_prandtl = prandlt(a, BLADES, r, R, tsr, MU_ROOT)
     a /= correction_prandtl
 
