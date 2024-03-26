@@ -279,7 +279,7 @@ if __name__ == "__main__":
 
     r = np.linspace(design.start, design.end, 10000, endpoint=True) * design.R
 
-    f_cor = prandlt(0.4, design.BLADES, r, design.R, design.TSR[0], design.start)
+    f_cor = prandlt(0.4, design.BLADES, r, design.R, design.TSR[2], design.start)
     f_cor_carlos = prandtl_carlos(r/design.R, design.start, design.end, design.TSR[0], design.BLADES, 0.4)
     fig_prandtl, ax_prandtl = plt.subplots(nrows=1, ncols=1)
     ax_prandtl.plot(r / design.R, f_cor), ax_prandtl.set_title("Prandtl's correction")

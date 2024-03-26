@@ -292,6 +292,7 @@ ax_lift_drag_bucket.set_ylabel(r"$C_l$ [-]")
 # fig_stat.savefig(rf'{path}\p_stat_distr_yaw={yaw_angle}.pdf')
 # fig_stag.savefig(rf'{path}\p_stag_distr_yaw={yaw_angle}.pdf')
 
+plt.close('all')
 
 plt.show()
 
