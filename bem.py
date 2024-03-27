@@ -1,4 +1,9 @@
 import numpy as np
+import seaborn as sns
+import matplotlib
+
+sns.set_theme(rc={'grid.color': 'white'})
+matplotlib.rcParams.update({'font.size': 15, 'figure.figsize': (6, 5), 'figure.dpi': 150})
 
 def bem_procedure(U0: float, segment_c: float, r: float, R: float, tsr: float, segment_twist: float,
                    blade_pitch: float, RHO: float, polar_sheet: np.ndarray, BLADES: int, MU_ROOT: float,
@@ -279,24 +284,34 @@ if __name__ == "__main__":
 
     r = np.linspace(design.start, design.end, 10000, endpoint=True) * design.R
 
-    f_cor = prandlt(0.4, design.BLADES, r, design.R, design.TSR[2], design.start)
-    f_cor_carlos = prandtl_carlos(r/design.R, design.start, design.end, design.TSR[0], design.BLADES, 0.4)
+    blue_color = ['#00CCFF', '#005FFF', '#0000FF']
+    f_cor_6 = prandlt(0.4, design.BLADES, r, design.R, design.TSR[0], design.start)
+    f_cor_8 = prandlt(0.4, design.BLADES, r, design.R, design.TSR[1], design.start)
+    f_cor_10 = prandlt(0.4, design.BLADES, r, design.R, design.TSR[2], design.start)
+    # f_cor_carlos = prandtl_carlos(r/design.R, design.start, design.end, design.TSR[0], design.BLADES, 0.4)
     fig_prandtl, ax_prandtl = plt.subplots(nrows=1, ncols=1)
-    ax_prandtl.plot(r / design.R, f_cor), ax_prandtl.set_title("Prandtl's correction")
-    ax_prandtl.plot(r / design.R, f_cor_carlos)
+    ax_prandtl.plot(r / design.R, f_cor_6, label='TSR: 6', color=blue_color[0])
+    ax_prandtl.plot(r / design.R, f_cor_8, label='TSR: 8', color=blue_color[1])
+    ax_prandtl.plot(r / design.R, f_cor_10, label='TSR: 10', color=blue_color[2])
+    # ax_prandtl.plot(r / design.R, f_cor_carlos)
     ax_prandtl.set_ylabel("Prandtl's correction factor"), ax_prandtl.set_xlabel('r/R')
-    ax_prandtl.grid()
+    ax_prandtl.legend()
     # plt.show()
 
     cts = np.linspace(-4, 4, 1000, endpoint=True)
+    a_nog = np.linspace(0, 1, 100, endpoint=True)
     a = []
+    ct_nog = []
     for ct in cts:
         a.append(glauert(ct))
+    for a_ng in a_nog:
+        ct_nog.append(4*a_ng*(1-a_ng))
 
     fig_glauert, ax_glauert = plt.subplots(nrows=1, ncols=1)
-    ax_glauert.plot(a, cts), plt.title(r"$C_T(a)$ including Glauert's correction")
+    ax_glauert.plot(a, cts, label="Glauert's correction")
+    ax_glauert.plot(a_nog, ct_nog, label='Actuator disk momentum')
     ax_glauert.set_ylabel(r'$C_T$'), plt.xlabel('a')
     ax_glauert.set_xlim([0,1]), ax_glauert.set_xticks(np.arange(0, 1.1, 0.1))
     ax_glauert.set_ylim([0,2])
-    ax_glauert.grid()
+    ax_glauert.legend()
     plt.show()
